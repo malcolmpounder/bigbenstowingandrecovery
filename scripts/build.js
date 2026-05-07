@@ -23,6 +23,7 @@ const STEPS = [
   { name: 'Open Graph + Twitter cards', script: 'add-og-tags.js'          },
   { name: 'Area-page rich schema',      script: 'enrich-area-schema.js'   },
   { name: 'Area-page landmarks',        script: 'inject-area-landmarks.js'},
+  { name: 'Safety strip injection',     script: 'inject-safety-strip.js'  },
   { name: 'BreadcrumbList schema',      script: 'add-breadcrumb-schema.js'},
   { name: 'HTML issue auto-fixes',      script: 'fix-html-issues.js'      },
   { name: 'AggregateRating injection',  script: 'inject-aggregate-rating.js' },

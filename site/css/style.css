@@ -1196,6 +1196,66 @@ section.alt { background: var(--jet); }
 .wa-inline-link:hover { background: var(--wa-green-dark); color: #fff; }
 
 /* =========================================================
+   Site-wide safety strip — sits between the hero and the rest
+   of the page on every non-safety page. Drives traffic to the
+   motorway breakdown guide. Yellow alert / brand caution style.
+   ========================================================= */
+.safety-strip {
+  background: var(--yellow);
+  color: #000;
+  padding: 14px 0;
+  border-top: 3px solid #000;
+  border-bottom: 3px solid #000;
+  position: relative;
+  font-weight: 600;
+}
+.safety-strip .container {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.safety-strip .ss-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  animation: ssBlink 1.6s ease-in-out infinite;
+}
+.safety-strip .ss-text { flex: 1 1 auto; }
+.safety-strip a {
+  color: #000;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.safety-strip a:hover {
+  background: #000;
+  color: var(--yellow);
+  padding: 2px 6px;
+  margin: -2px -6px;
+  text-decoration: none;
+}
+.safety-strip .ss-arrow {
+  margin-left: 4px;
+  display: inline-block;
+  transition: transform .15s ease;
+}
+.safety-strip a:hover .ss-arrow { transform: translateX(3px); }
+@keyframes ssBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .safety-strip .ss-icon { animation: none; }
+}
+@media (max-width: 720px) {
+  .safety-strip { padding: 12px 0; }
+  .safety-strip .container { gap: 10px; font-size: .95rem; }
+  .safety-strip .ss-icon { font-size: 1.25rem; }
+  .safety-strip a { white-space: normal; }
+}
+
+/* =========================================================
    Safety / breakdown page — step list with urgency colours
    ========================================================= */
 .safety-alert {
