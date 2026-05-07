@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bigbenstowingandrecovery.co.uk/sitemap.xml

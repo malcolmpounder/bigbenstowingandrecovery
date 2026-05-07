@@ -1,0 +1,17 @@
+{
+  "_comment": "Sample regs for local dev / demo. In production these are looked up via DVLA VES + DVSA MOT APIs (see scripts/serve.js).",
+  "regs": {
+    "AB12CDE": { "make": "FORD",        "model": "FIESTA",   "year": 2014, "fuel": "PETROL", "colour": "BLUE"   },
+    "BD18FGH": { "make": "VAUXHALL",    "model": "CORSA",    "year": 2018, "fuel": "PETROL", "colour": "WHITE"  },
+    "CD15JKL": { "make": "FORD",        "model": "FOCUS",    "year": 2015, "fuel": "DIESEL", "colour": "SILVER" },
+    "DE16MNO": { "make": "VOLKSWAGEN",  "model": "GOLF",     "year": 2016, "fuel": "DIESEL", "colour": "GREY"   },
+    "EF19PQR": { "make": "NISSAN",      "model": "QASHQAI",  "year": 2019, "fuel": "PETROL", "colour": "RED"    },
+    "FG13STU": { "make": "FORD",        "model": "TRANSIT",  "year": 2013, "fuel": "DIESEL", "colour": "WHITE"  },
+    "GH17VWX": { "make": "BMW",         "model": "3 SERIES", "year": 2017, "fuel": "DIESEL", "colour": "BLACK"  },
+    "HJ20YZA": { "make": "TESLA",       "model": "MODEL 3",  "year": 2020, "fuel": "ELECTRIC","colour": "WHITE"  },
+    "JK14BCD": { "match-test": "edge case — won't be in our weight lookup",
+                 "make": "PROTON",      "model": "GEN-2",    "year": 2014, "fuel": "PETROL", "colour": "GREEN"  },
+    "SR16KPX": { "_note": "Big Ben's actual recovery truck plate from photo",
+                 "make": "IVECO",       "model": "DAILY",    "year": 2016, "fuel": "DIESEL", "colour": "WHITE"  }
+  }
+}

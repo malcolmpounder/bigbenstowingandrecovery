@@ -1,0 +1,33 @@
+# Dependencies + tooling caches
+node_modules/
+package-lock.json
+.npm/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Build artefacts that we DON'T commit (generated on every build)
+lighthouse-report.json
+*.log
+
+# Cloudflare Wrangler local cache
+.wrangler/
+wrangler-cache/
+
+# Local dev preview screenshots
+preview/screenshots/
+
+# Original-resolution photos (kept for re-export, not deployed)
+# Comment this out if you want the originals tracked too.
+assets/images/
+
+# Local Claude session files
+.claude/launch.json

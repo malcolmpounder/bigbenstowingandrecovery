@@ -1,0 +1,24 @@
+{
+  "name": "Big Ben's Towing & Recovery",
+  "short_name": "Big Ben's",
+  "description": "24/7 vehicle recovery and transport across the North East. Call 07754 984 147.",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "icons": [
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Call now", "short_name": "Call", "url": "tel:+447754984147" },
+    { "name": "Get a quote", "short_name": "Quote", "url": "/quote.html" },
+    { "name": "Scrap calculator", "short_name": "Scrap", "url": "/scrap.html" }
+  ]
+}

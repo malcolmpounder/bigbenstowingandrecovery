@@ -1,0 +1,32 @@
+{
+  "_comment": "Hand-edit this file to show the last few recoveries on the homepage. Empty 'jobs' array = section auto-hides. Add a new job to the top of the array — old ones at the bottom can be deleted. Each entry needs: route (free text), vehicle, summary. Optional: date (YYYY-MM-DD), miles, price (£) — only set price if you're comfortable showing it publicly.",
+  "jobs": [
+    {
+      "_template": "REPLACE WITH REAL JOB",
+      "date": "2026-05-01",
+      "route": "Durham → Newcastle bodyshop",
+      "vehicle": "Audi A4 (accident damage)",
+      "summary": "Recovered after a parking-lot bump. Direct delivery to insurer's preferred shop.",
+      "miles": 22,
+      "price": null
+    },
+    {
+      "_template": "REPLACE WITH REAL JOB",
+      "date": "2026-04-28",
+      "route": "BCA Bedlington → Sunderland",
+      "vehicle": "1972 MGB GT",
+      "summary": "Auction collection for a regular trade customer. Tilt-bed, soft straps, photo handover.",
+      "miles": 30,
+      "price": null
+    },
+    {
+      "_template": "REPLACE WITH REAL JOB",
+      "date": "2026-04-26",
+      "route": "M1 J62 → home (Chester-le-Street)",
+      "vehicle": "Tesla Model 3",
+      "summary": "Hard-shoulder breakdown, 12V battery dead. Tilt-bed lift, dropped at customer's home.",
+      "miles": 15,
+      "price": null
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+# Cloudflare Pages — HTTP response headers
+# https://developers.cloudflare.com/pages/configuration/headers/
+#
+# Strategy: secure defaults for HTML, aggressive caching for fingerprinted-ish
+# static assets (images, css), short caching for the small JSON data files
+# (so testimonials/recent-jobs updates appear within an hour).
+
+/*
+  # Tell upstream proxies to honour origin caching decisions
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self), microphone=(), camera=(), payment=(self)
+  Strict-Transport-Security: max-age=15552000; includeSubDomains
+  # Conservative CSP — allows the site's own JS/CSS, Google Fonts, and the
+  # WhatsApp click-to-chat target. Inline scripts/styles are needed for the
+  # FAQ hash-handler and a few in-page <script> blocks; review when refactored.
+  # script-src keeps 'unsafe-inline' purely so the JSON-LD blocks (Schema.org
+  # structured data) work — they're <script type="application/ld+json"> which
+  # browsers gate behind script-src even though they don't execute as JS.
+  # All actual executable inline JS has been moved to /js/*.js so this isn't
+  # the typical XSS-amplifier it would normally be.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'
+
+# Static assets — long-cache, immutable. Versioned via filename so safe to
+# cache for a year. Override per-resource if you need shorter for a specific file.
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000
+
+/js/*
+  Cache-Control: public, max-age=31536000
+
+# Self-hosted fonts — same long-cache policy as other static assets
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# JSON content that the site editor (Big Ben) updates by hand — keep it
+# short-cached so changes appear within the hour without a manual purge.
+/data/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Manifest + icons — slightly longer than data, shorter than versioned assets
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400
+  Content-Type: application/manifest+json
+
+# Service worker — never cache (so updates roll out immediately)
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+
+# HTML pages — short-cache so content edits propagate fast
+/*.html
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Apex (homepage) inherits HTML behaviour
+/
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Sitemap + robots — let crawlers refresh frequently
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=3600

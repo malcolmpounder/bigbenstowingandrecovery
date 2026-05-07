@@ -1,0 +1,8 @@
+{
+  "_comment": "Map of short codes to Stripe Payment Link URLs. Big Ben creates a payment link in Stripe (Dashboard → Payment Links → New) and adds the short code + the full URL here. Codes are case-insensitive on lookup. Keep them short and easy to text (e.g. BB-1234, JOB42). When the codes are no longer needed, just delete the entry.",
+  "_example": {
+    "BB-1234": "https://buy.stripe.com/test_xxxxxxxxxxxxxxxx"
+  },
+  "links": {
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "_comment": "Hand-edit this file (or have Big Ben's phone do it via a shortcut/automation) to update the availability badge on the homepage. status = 'available' | 'busy' | 'offline'. When 'busy', set 'returnBy' to a UK time like '14:30'. When 'offline', set 'reason' to a short note. Anything else = no badge shown.",
+  "status": "available",
+  "returnBy": null,
+  "reason": null,
+  "updatedAt": "2026-05-07T08:00:00Z"
+}

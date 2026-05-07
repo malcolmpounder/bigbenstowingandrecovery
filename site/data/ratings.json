@@ -1,0 +1,9 @@
+{
+  "_comment": "When real Google / Trustpilot reviews start coming in, set 'enabled' to true and update 'ratingValue' (e.g. 4.9) and 'reviewCount'. Then re-run the build (node scripts/build.js). The homepage AggregateRating JSON-LD will be injected, which makes Google show gold stars in search snippets. Until 'enabled' is true, no AggregateRating is added (per Google guidelines you shouldn't claim ratings until they exist).",
+  "enabled": false,
+  "ratingValue": null,
+  "reviewCount": 0,
+  "bestRating": 5,
+  "worstRating": 1,
+  "source": "Google"
+}

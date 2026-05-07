@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>You're offline — Big Ben's Towing &amp; Recovery</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#0d0d0d" />
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/img/icon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="canonical" href="https://bigbenstowingandrecovery.co.uk/offline.html" />
+<link rel="stylesheet" href="/css/fonts.css" />
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  /* Inline a tiny custom version of the bottom call bar so the offline
+     page renders the right structure without needing main.js. */
+  .offline-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 14px 18px;
+    background: #e63946; color: #fff;
+    text-decoration: none;
+    font-family: var(--font-display, sans-serif);
+    border-top: 3px solid #fff;
+    box-shadow: 0 -4px 16px rgba(0,0,0,.6);
+  }
+  .offline-bar .ico {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: #fff; color: #e63946;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .offline-bar .num { font-size: 1.5rem; letter-spacing: .03em; }
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+</style>
+<!-- og:tags -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Big Ben's Towing &amp; Recovery" />
+<meta property="og:title" content="You're offline — Big Ben's Towing &amp; Recovery" />
+<meta property="og:description" content="24/7 vehicle recovery and transport across the North East. Call 07754&nbsp;984&nbsp;147." />
+<meta property="og:url" content="https://bigbenstowingandrecovery.co.uk/offline.html" />
+<meta property="og:image" content="https://bigbenstowingandrecovery.co.uk/img/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Big Ben’s Towing &amp; Recovery branded flatbed truck" />
+<meta property="og:locale" content="en_GB" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="You're offline — Big Ben's Towing &amp; Recovery" />
+<meta name="twitter:description" content="24/7 vehicle recovery and transport across the North East. Call 07754&nbsp;984&nbsp;147." />
+<meta name="twitter:image" content="https://bigbenstowingandrecovery.co.uk/img/og-image.jpg" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/"><img src="/img/logo.jpg" alt="" width="256" height="171" /><div><div class="name">BIG BEN'<span>S</span></div><div class="tag">Towing &amp; Recovery</div></div></a>
+    <a class="btn btn-call danger" href="tel:+447754984147">07754&nbsp;984&nbsp;147</a>
+  </div>
+</header>
+<div class="stripe"></div>
+
+<section class="not-found">
+  <div class="container">
+    <div class="nf-num" style="color: var(--yellow); text-shadow: 0 6px 0 #b58800;">📡</div>
+    <h1>You're <span class="accent">offline</span></h1>
+    <p class="lede">Your phone's lost data signal. The site can't load right now — but the phone still works.</p>
+
+    <div class="nf-actions">
+      <a class="btn danger btn-call" href="tel:+447754984147" style="font-size: 1.4rem; padding: 18px 32px;">Call&nbsp;07754&nbsp;984&nbsp;147</a>
+    </div>
+
+    <div class="nf-help">
+      <p>If you're broken down:</p>
+      <ul>
+        <li>Get to a hard shoulder, refuge area, or off the carriageway.</li>
+        <li>Exit on the left, behind the safety barrier.</li>
+        <li>Call <strong>999</strong> if you're in a live lane and can't move.</li>
+        <li>Then call us — <strong>07754&nbsp;984&nbsp;147</strong>, day or night.</li>
+      </ul>
+      <p style="margin-top: 14px; font-weight: 400; text-transform: none; letter-spacing: 0; color: #b8b8b8; font-size: .95rem;">Refresh this page once your signal comes back.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Static call bar — no JS needed, works fully offline -->
+<a class="offline-bar" href="tel:+447754984147">
+  <span class="ico" aria-hidden="true">☎</span>
+  <span class="num">07754&nbsp;984&nbsp;147</span>
+</a>
+
+</body>
+</html>

@@ -1,0 +1,1326 @@
+/* =========================================================
+   Big Ben's Towing & Recovery — site styles
+   Brand palette pulled from logo:
+     --black   : page bg
+     --jet     : surfaces / cards
+     --yellow  : caution-stripe accents, highlights
+     --orange  : primary CTAs, headline highlights
+     --red     : urgent / phone / breakdown
+     --white   : body text on dark
+   ========================================================= */
+:root {
+  --black:  #0d0d0d;
+  --jet:    #1a1a1a;
+  --jet-2:  #232323;
+  --yellow: #ffc20e;
+  --orange: #ff6a00;
+  --red:    #e63946;
+  --white:  #ffffff;
+  --grey:   #c8c8c8;          /* bumped from #b8b8b8 for AA contrast on dark */
+  --grey-2: #9c9c9c;          /* bumped from #6e6e6e — was failing WCAG AA */
+
+  --max:    1180px;
+  --radius: 6px;
+  --shadow: 0 10px 30px rgba(0,0,0,.45);
+
+  --font-display: "Anton", "Bebas Neue", "Impact", system-ui, sans-serif;
+  --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;       /* stop iOS Safari upscaling text on rotate */
+  text-size-adjust: 100%;
+}
+
+/* Respect users who've asked for less motion — disable pulse + smooth-scroll */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .float-call { animation: none !important; }
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+
+/* A11y: skip-to-main link — visible only when keyboard-focused */
+.skip-link {
+  position: absolute; left: 8px; top: -48px;
+  background: var(--orange); color: #000; padding: 10px 16px;
+  font-family: var(--font-display); font-weight: 700; letter-spacing: .04em;
+  border-radius: var(--radius);
+  z-index: 200;
+  transition: top .15s ease;
+}
+.skip-link:focus { top: 8px; outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+/* A11y: visible focus ring for keyboard users on all interactive elements */
+:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
+.btn:focus-visible, .float-call:focus-visible, .float-wa:focus-visible {
+  outline-offset: 4px;
+}
+body {
+  margin: 0;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 18px;                      /* was 17 — a touch bigger reads sharper */
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+img { max-width: 100%; display: block; }
+a  { color: var(--yellow); text-decoration: none; }
+a:hover { color: var(--orange); }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  margin: 0 0 .5em;
+  line-height: 1.02;
+}
+h1 { font-size: clamp(3rem, 8vw, 6rem); letter-spacing: 0.005em; }
+h2 { font-size: clamp(2.1rem, 5vw, 3.4rem); }
+h3 { font-size: clamp(1.3rem, 2.6vw, 1.7rem); }
+
+/* Anton can look spindly on retina displays at large sizes —
+   a sub-pixel stroke gives the headlines proper weight. */
+.hero h1, .cta-banner h2, .section-head h2 {
+  -webkit-text-stroke: 0.4px currentColor;
+}
+
+p  { margin: 0 0 1em; }
+.container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+.muted { color: var(--grey); }
+.text-orange { color: var(--orange); }
+.text-yellow { color: var(--yellow); }
+
+/* =========================================================
+   Caution stripe — used as a section divider
+   ========================================================= */
+.stripe {
+  height: 28px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--yellow) 0 32px,
+    var(--black) 32px 64px
+  );
+  box-shadow: 0 2px 0 rgba(0,0,0,.6) inset, 0 -2px 0 rgba(0,0,0,.6) inset;
+}
+.stripe.thin { height: 16px; }
+@media (max-width: 720px) {
+  .stripe { height: 22px; }
+  .stripe.thin { height: 12px; }
+}
+
+/* =========================================================
+   Header / navigation
+   ========================================================= */
+.site-header {
+  position: sticky;
+  top: 0; z-index: 50;
+  background: rgba(13,13,13,.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #000;
+}
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 16px 0;                /* was 12 — bumped for taller header */
+}
+.brand {
+  display: flex; align-items: center; gap: 14px;   /* was 12 */
+  color: var(--white);
+}
+.brand img {
+  height: 68px;                              /* was 52 — bigger, more "business card" presence */
+  width: auto;
+  border-radius: 4px;
+  /* Sharper edges on retina screens */
+  image-rendering: -webkit-optimize-contrast;
+}
+.brand .name {
+  font-family: var(--font-display);
+  font-size: 1.75rem;                        /* was 1.4 */
+  letter-spacing: .03em;                     /* was .04 — tighter reads as crisper at the new size */
+  line-height: 1;
+}
+.brand .name span { color: var(--orange); }
+.brand .tag {
+  font-size: .82rem;                         /* was .75 */
+  color: var(--yellow);
+  letter-spacing: .18em;                     /* was .15 */
+  text-transform: uppercase;
+  font-weight: 700;                          /* added for weight match against bigger name */
+  margin-top: 3px;
+}
+
+.nav-links {
+  display: flex; gap: 22px; align-items: center;
+  font-size: .95rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.nav-links a { color: var(--white); }
+.nav-links a:hover { color: var(--yellow); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 22px;                       /* was 12 20 — meets 44px touch target */
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  background: var(--orange);
+  color: #000;
+  border: 0; border-radius: var(--radius);
+  cursor: pointer;
+  transition: transform .12s ease, background .18s ease, box-shadow .18s ease;
+  box-shadow: 0 6px 0 #c95300;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover { background: var(--yellow); color: #000; transform: translateY(-1px); box-shadow: 0 7px 0 #b58800; }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #b58800; }
+.btn.secondary { background: var(--white); color: #000; box-shadow: 0 6px 0 #888; }
+.btn.secondary:hover { background: var(--yellow); }
+/* The danger red on its dark drop-shadow tested low on contrast for the
+   text — bumped to a slightly cooler red with a darker text shadow so
+   the white CTA text reads cleanly even with the brand button gradient. */
+.btn.danger { background: #d73442; color: #fff; box-shadow: 0 6px 0 #8e1c28; }
+.btn.danger:hover { background: #ff5060; color: #fff; }
+.btn.ghost { background: transparent; color: var(--yellow); border: 2px solid var(--yellow); box-shadow: none; }
+.btn.ghost:hover { background: var(--yellow); color: #000; }
+
+/* Phone-number CTAs use the body font at heavy weight rather than the
+   display font — Anton's condensed shapes make digits read as soft, and
+   the digits are the most important info on the button. */
+.btn-call {
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: .015em;
+  font-size: 1.08rem;
+  font-variant-numeric: tabular-nums;
+}
+.btn-call::before { content: "\260E"; font-size: 1.25em; margin-right: 2px; }
+/* Larger sizes when used in the hero / banner CTAs */
+.hero .btn-call,
+.cta-banner .btn-call { font-size: 1.2rem; }
+
+.nav-toggle {
+  display: none; background: transparent; border: 0; color: #fff;
+  font-size: 1.8rem; cursor: pointer;
+  padding: 8px 12px;                  /* better touch target */
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 880px) {
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0;
+               flex-direction: column; gap: 0; background: var(--jet);
+               padding: 8px 0; border-bottom: 1px solid #000; }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 16px 24px; border-bottom: 1px solid #000; width: 100%; font-size: 1rem; }
+  .nav-toggle { display: inline-block; }
+  .brand .tag { display: none; }
+  .brand img { height: 56px; }              /* was 44 — bumped for bigger brand presence */
+  .brand .name { font-size: 1.5rem; }       /* was 1.25 */
+
+  /* Keep the phone CTA visible in the header on mobile — but compact.
+     Show only the icon + short label so it doesn't crowd the bar. */
+  .nav .btn-call {
+    display: inline-flex;
+    padding: 10px 14px;
+    font-size: .95rem;
+    box-shadow: 0 4px 0 #a8232f;
+    white-space: nowrap;
+  }
+  /* Hide the actual digits in the header; the bottom bar shows them */
+  .nav .btn-call { font-size: 0; gap: 0; padding: 10px 12px; }
+  .nav .btn-call::before { font-size: 1.4rem; }
+  .nav .btn-call::after {
+    content: "Call";
+    font-size: .85rem; font-family: var(--font-display);
+    letter-spacing: .05em; margin-left: 6px;
+  }
+}
+@media (max-width: 360px) {
+  /* Tightest phones (iPhone SE 1st gen / older Androids) — collapse only the
+     bare minimum so the header still fits, but stay readable. */
+  .brand .name { font-size: 1.25rem; }
+  .brand img   { height: 48px; }
+  .nav { gap: 8px; }
+}
+
+/* =========================================================
+   Hero
+   ========================================================= */
+.hero {
+  position: relative;
+  min-height: 78vh;
+  display: flex; align-items: center;
+  background: #000;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute; inset: 0;
+  /* image-set lets supporting browsers fetch the smaller .webp; older
+     browsers fall back to the .jpg preloaded in <head>. */
+  background: url("../img/hero-night.jpg") center/cover no-repeat;
+  background-image: image-set(
+    url("../img/hero-night.webp") type("image/webp"),
+    url("../img/hero-night.jpg") type("image/jpeg")
+  );
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: brightness(.5) saturate(1.1);
+  z-index: 0;
+}
+.hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.25) 100%);
+  z-index: 1;
+}
+.hero .container { position: relative; z-index: 2; padding-top: 64px; padding-bottom: 64px; }
+.hero h1 {
+  color: var(--white);
+  /* Tighter, harder shadow reads as a crisp outline rather than a smudgy halo */
+  text-shadow: 0 1px 0 rgba(0,0,0,.8), 0 2px 6px rgba(0,0,0,.7);
+}
+.hero h1 .accent { color: var(--orange); }
+.hero .lede {
+  max-width: 640px;
+  font-size: 1.3rem;          /* was 1.15rem */
+  font-weight: 500;
+  color: #f6f6f6;
+  text-shadow: 0 1px 2px rgba(0,0,0,.85);
+  margin-bottom: 32px;
+}
+.hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.hero-badges {
+  display: flex; gap: 22px; flex-wrap: wrap; margin-top: 32px;
+  font-size: .95rem;
+  color: var(--yellow); text-transform: uppercase; letter-spacing: .1em; font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+}
+
+/* Availability badge (homepage hero) — populated from data/availability.json */
+.availability-slot { margin-bottom: 18px; min-height: 38px; }
+.availability-slot:empty { display: none; }
+.avail {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 16px;
+  font-family: var(--font-display);
+  font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  font-size: .85rem;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+}
+.avail-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 0 currentColor;
+  animation: availPulse 2s infinite;
+}
+.avail--ok   { color: #6dba2c; }
+.avail--busy { color: var(--yellow); }
+.avail--off  { color: #ff8088; }
+@keyframes availPulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avail-dot { animation: none; }
+}
+.hero-badges span::before { content: "\2714  "; color: var(--orange); }
+
+/* Hero — mobile-tuned: fill the viewport without forcing scroll for the CTA */
+@media (max-width: 720px) {
+  .hero { min-height: 0; }
+  .hero .container { padding-top: 48px; padding-bottom: 48px; }
+  .hero h1 { font-size: clamp(3rem, 13vw, 4.4rem); line-height: 1.02; letter-spacing: 0; }
+  .hero .lede { font-size: 1.1rem; margin-bottom: 24px; }
+  .hero-cta { flex-direction: column; align-items: stretch; gap: 12px; }
+  .hero-cta .btn { width: 100%; justify-content: center; }
+  .hero-badges { gap: 14px 18px; font-size: .82rem; margin-top: 24px; }
+}
+
+/* =========================================================
+   Sections
+   ========================================================= */
+section { padding: 72px 0; }
+section.alt { background: var(--jet); }
+.section-head { text-align: center; margin-bottom: 48px; }
+.section-head h2 .accent { color: var(--orange); }
+.section-head p {
+  max-width: 680px; margin: 0 auto;
+  color: #d6d6d6;        /* was --grey (#b8b8b8) — a touch brighter reads sharper on the dark bg */
+  font-size: 1.05rem;
+}
+
+@media (max-width: 720px) {
+  section { padding: 52px 0; }
+  .section-head { margin-bottom: 32px; }
+  .section-head p { font-size: 1rem; }
+}
+
+/* Services grid */
+.grid {
+  display: grid; gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.card {
+  background: var(--jet-2);
+  border: 1px solid #000;
+  border-top: 4px solid var(--orange);
+  padding: 28px 24px;
+  border-radius: var(--radius);
+  transition: transform .18s ease, border-color .18s ease;
+}
+.card:hover { transform: translateY(-3px); border-top-color: var(--yellow); }
+.card .icon {
+  font-size: 2.2rem; margin-bottom: 12px; display: inline-block;
+}
+.card h3 { color: var(--white); }
+.card p { color: #d0d0d0; margin: 0; }   /* was --grey — better contrast for sharper read */
+
+@media (max-width: 720px) {
+  .grid { gap: 14px; }
+  .card { padding: 22px 18px; }
+}
+
+/* Why-us numbered list */
+.why-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); }
+.why-item {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 18px; background: var(--jet-2); border-radius: var(--radius);
+  border-left: 4px solid var(--yellow);
+}
+.why-item .num {
+  font-family: var(--font-display); font-size: 2.2rem; color: var(--orange); line-height: 1;
+}
+.why-item h3 { margin-bottom: 4px; }
+.why-item p  { color: #d0d0d0; margin: 0; }
+
+/* Coverage area list */
+.area-cloud {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+}
+.area-cloud a {
+  display: inline-block; padding: 8px 14px;
+  background: var(--jet-2); border: 1px solid #000;
+  border-radius: 999px; color: var(--white); font-size: .9rem;
+  transition: background .15s ease, color .15s ease;
+}
+.area-cloud a:hover { background: var(--yellow); color: #000; }
+
+/* =========================================================
+   Testimonials (homepage, JSON-driven)
+   ========================================================= */
+.testimonials {
+  display: grid; gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.testimonial {
+  background: var(--jet-2);
+  padding: 26px 24px;
+  border-radius: var(--radius);
+  border-left: 4px solid var(--yellow);
+  margin: 0;
+  position: relative;
+}
+.testimonial::before {
+  content: "\201C";
+  font-family: Georgia, serif;
+  font-size: 5rem;
+  line-height: 1;
+  position: absolute;
+  top: 8px; right: 18px;
+  color: var(--orange);
+  opacity: .25;
+  pointer-events: none;
+}
+.testimonial__stars {
+  color: var(--orange);
+  font-size: 1.15rem;
+  letter-spacing: .08em;
+  margin-bottom: 10px;
+}
+.testimonial blockquote {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: #e6e6e6;
+  font-style: italic;
+}
+.testimonial figcaption {
+  font-size: .9rem;
+  color: var(--grey);
+}
+.testimonial figcaption strong { color: #fff; font-weight: 700; }
+.testimonial__source {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: .8rem;
+  color: var(--grey-2);
+  font-style: italic;
+}
+
+/* =========================================================
+   Recent jobs feed (homepage, JSON-driven)
+   ========================================================= */
+.recent-jobs {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.recent-job {
+  background: var(--jet-2);
+  padding: 18px 20px;
+  border-radius: var(--radius);
+  border-top: 3px solid var(--orange);
+  position: relative;
+}
+.recent-job__date {
+  font-family: var(--font-display);
+  font-size: .85rem;
+  letter-spacing: .08em;
+  color: var(--yellow);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.recent-job__route {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: .02em;
+  color: #fff;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.recent-job__vehicle {
+  color: var(--grey);
+  font-size: .92rem;
+  margin-top: 2px;
+}
+.recent-job__summary {
+  margin: 10px 0 0;
+  color: #d8d8d8;
+  font-size: .92rem;
+  line-height: 1.5;
+}
+.recent-job__meta {
+  margin-top: 10px;
+  font-size: .85rem;
+  color: var(--grey-2);
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   Gallery — phone-shot photos are mostly portrait, so the layout
+   honours that. Uses a masonry-ish grid where each image keeps
+   its native aspect (object-fit: cover with a portrait container,
+   then occasional landscape spans for variety).
+   ========================================================= */
+.gallery {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.gallery picture, .gallery > img {
+  display: block;
+  position: relative;
+}
+.gallery img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 40%;     /* favour the truck/vehicle slightly above centre when cropping */
+  display: block;
+  border-radius: var(--radius);
+  border: 2px solid #000;
+  background: var(--jet);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  box-shadow: 0 6px 16px rgba(0,0,0,.35);
+}
+.gallery img:hover {
+  transform: scale(1.02);
+  border-color: var(--yellow);
+  box-shadow: 0 10px 24px rgba(0,0,0,.55);
+}
+/* Default tile is 3:4 portrait (matches the phone-shot source) */
+.gallery picture, .gallery > img { aspect-ratio: 3 / 4; }
+.gallery picture img, .gallery > img { aspect-ratio: 3 / 4; }
+/* Hero-night.jpg is the sole landscape image — let it span two columns
+   to break up the rhythm. Same for the branded truck on wider screens. */
+.gallery picture:nth-child(5n),
+.gallery > img:nth-child(5n) {
+  grid-column: span 2;
+  aspect-ratio: 16 / 10;
+}
+.gallery picture:nth-child(5n) img { aspect-ratio: 16 / 10; }
+
+@media (max-width: 720px) {
+  .gallery { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .gallery picture:nth-child(5n),
+  .gallery > img:nth-child(5n) {
+    grid-column: span 2;
+    aspect-ratio: 16 / 10;
+  }
+}
+
+/* CTA banner */
+.cta-banner {
+  position: relative; padding: 80px 0; text-align: center;
+  background: linear-gradient(0deg, rgba(0,0,0,.65), rgba(0,0,0,.65)),
+              url("../img/truck-jag.jpg") center/cover no-repeat;
+}
+.cta-banner h2 {
+  color: var(--white);
+  text-shadow: 0 1px 0 rgba(0,0,0,.8), 0 2px 6px rgba(0,0,0,.6);
+}
+.cta-banner h2 .accent { color: var(--yellow); }
+.cta-banner .btn { font-size: 1.3rem; padding: 16px 32px; }
+@media (max-width: 720px) {
+  .cta-banner { padding: 56px 0; }
+  .cta-banner .btn { font-size: 1.15rem; padding: 14px 24px; width: 100%; max-width: 360px; justify-content: center; }
+  .cta-banner .btn + .btn { margin-top: 10px; }
+}
+
+/* Footer */
+.site-footer {
+  background: #050505; padding: 48px 0 24px; color: var(--grey); font-size: .92rem;
+}
+.footer-grid {
+  display: grid; gap: 32px;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  margin-bottom: 32px;
+}
+.site-footer h3, .site-footer h4 { color: var(--yellow); font-size: 1rem; margin-bottom: .6em; }
+.site-footer p { color: #d0d0d0; }
+.site-footer a {
+  color: #f0f0f0;            /* was var(--grey) — too dim against #050505 footer bg */
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,.18);
+  text-underline-offset: 2px;
+}
+.site-footer a:hover { color: var(--yellow); text-decoration-color: var(--yellow); }
+.footer-bottom {
+  border-top: 1px solid #1a1a1a; padding-top: 18px;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  font-size: .85rem;        /* was .8 */
+  color: #c0c0c0;           /* was --grey-2 */
+}
+@media (max-width: 720px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+}
+@media (max-width: 480px) {
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { font-size: .75rem; text-align: center; justify-content: center; }
+}
+
+/* =========================================================
+   Forms (quote / scrap calc / contact)
+   ========================================================= */
+.form-card {
+  background: var(--jet-2); padding: 32px; border-radius: var(--radius);
+  border-top: 4px solid var(--orange); box-shadow: var(--shadow);
+}
+.form-row { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+@media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+.form-group label {
+  display: block; font-size: .85rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--yellow); margin-bottom: 6px;
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 14px 14px;
+  min-height: 48px;            /* 48px touch target for trembling-fingers ergonomics */
+  background: #0a0a0a; border: 1px solid #2a2a2a;
+  color: #fff;
+  font-size: 16px;             /* 16px stops iOS Safari zooming on focus */
+  border-radius: 4px; font-family: inherit;
+  -webkit-appearance: none; appearance: none;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--orange); background: #000;
+  box-shadow: 0 0 0 3px rgba(255,106,0,.18);
+}
+.form-help { font-size: .85rem; color: #9c9c9c; margin-top: 4px; }  /* was --grey-2 (#6e6e6e) — too dim */
+
+/* Honeypot — visually hidden but still in the tab order is risky for some
+   bots, so we hard-hide it with width:0 + opacity:0 + tabindex=-1 in HTML. */
+.hp-trap {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Inline field error message */
+.field-error {
+  font-size: .85rem;
+  color: #ff8088;
+  margin-top: 6px;
+  padding-left: 2px;
+}
+.form-group input.is-invalid,
+.form-group select.is-invalid,
+.form-group textarea.is-invalid {
+  border-color: var(--red);
+  background: #1a0a0c;
+}
+
+/* Form-level status messages */
+.form-success {
+  background: #1f3d1f; color: #a4d965;
+  padding: 12px 14px; border-radius: 4px;
+  border-left: 3px solid #6dba2c;
+  font-size: .95rem;
+}
+.form-error {
+  background: #3d1f23; color: #ff8088;
+  padding: 12px 14px; border-radius: 4px;
+  border-left: 3px solid var(--red);
+  font-size: .95rem;
+}
+.form-error-call {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .form-card { padding: 22px 18px; }
+}
+
+.quote-result {
+  margin-top: 28px; padding: 24px; border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--orange), #ff8a3c);
+  color: #000; box-shadow: var(--shadow);
+}
+.quote-result h3 { color: #000; margin-bottom: 8px; }
+.quote-result .price {
+  font-family: var(--font-display); font-size: 3.5rem; line-height: 1; color: #000;
+}
+.quote-result .breakdown { background: rgba(0,0,0,.15); padding: 14px; border-radius: 4px; margin: 14px 0; }
+.quote-result .breakdown div { display: flex; justify-content: space-between; padding: 4px 0; font-size: .95rem; }
+.quote-result.scrap-positive { background: linear-gradient(135deg, #6dba2c, #a4d965); }
+.quote-result.scrap-negative { background: linear-gradient(135deg, var(--red), #ff7080); color: #fff; }
+.quote-result.scrap-negative h3, .quote-result.scrap-negative .price { color: #fff; }
+
+/* Long-form pages (T&Cs, Privacy, FAQ) */
+.legal-page { padding: 60px 0; }
+.legal-page .container { max-width: 820px; }
+.legal-page h1 { color: var(--orange); }
+.legal-page h2 {
+  color: var(--yellow); font-size: 1.6rem; margin-top: 2.4em;
+  border-bottom: 1px solid var(--jet-2); padding-bottom: .4em;
+}
+.legal-page h3 { color: var(--white); font-size: 1.2rem; margin-top: 1.6em; }
+.legal-page p, .legal-page li { color: #d8d8d8; }
+.legal-page ul, .legal-page ol { padding-left: 1.4em; }
+.legal-page li { margin-bottom: .4em; }
+.legal-page .updated { color: #a0a0a0; font-size: .95rem; margin-top: -.5em; }
+
+/* =========================================================
+   FAQ accordion — native <details> with custom chrome
+   ========================================================= */
+.faq-list { margin-top: 32px; display: flex; flex-direction: column; gap: 10px; }
+.faq-item {
+  background: var(--jet-2);
+  border: 1px solid #2a2a2a;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s ease;
+}
+.faq-item[open] { border-color: var(--orange); }
+.faq-item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 18px 24px 18px 22px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: .015em;
+  text-transform: uppercase;
+  color: var(--white);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  position: relative;
+  transition: color .2s ease, background .2s ease;
+}
+.faq-item summary:hover { color: var(--yellow); background: #202020; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 14px; height: 14px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .25s ease;
+  margin-top: -4px;                /* optical alignment */
+}
+.faq-item[open] summary { color: var(--orange); }
+.faq-item[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+
+.faq-item .faq-body {
+  padding: 4px 24px 22px;
+  color: #d8d8d8;
+  border-top: 1px solid #2a2a2a;
+  animation: faqIn .2s ease-out;
+}
+.faq-item .faq-body p:first-child { margin-top: 14px; }
+.faq-item .faq-body p:last-child  { margin-bottom: 0; }
+.faq-item .faq-body a { color: var(--yellow); text-decoration: underline; }
+.faq-item .faq-body a:hover { color: var(--orange); }
+
+@keyframes faqIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-item .faq-body { animation: none; }
+  .faq-item summary::after { transition: none; }
+}
+@media (max-width: 540px) {
+  .faq-item summary { padding: 14px 18px; font-size: 1.02rem; gap: 12px; }
+  .faq-item .faq-body { padding: 4px 18px 18px; }
+}
+
+/* Cookie banner */
+.cookie-banner {
+  position: fixed; bottom: 16px; left: 16px; right: 16px;
+  max-width: 560px; margin-left: auto; margin-right: auto;
+  background: var(--jet); border: 1px solid var(--yellow);
+  padding: 16px 18px; border-radius: var(--radius); z-index: 100;
+  display: none; box-shadow: var(--shadow);
+}
+.cookie-banner.show { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.cookie-banner p { margin: 0; font-size: .9rem; color: #ddd; flex: 1 1 220px; }
+.cookie-banner .btn { padding: 8px 14px; font-size: .9rem; box-shadow: 0 3px 0 #c95300; }
+
+/* On mobile the banner sits ABOVE the sticky call bar so the call CTA is never blocked */
+@media (max-width: 880px) {
+  .cookie-banner {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    left: 12px; right: 12px;
+    padding: 12px 14px;
+  }
+  .cookie-banner p { font-size: .82rem; flex-basis: 100%; }
+}
+
+/* =========================================================
+   Sticky action stack — Call + WhatsApp.
+   On desktop: two stacked floating circles bottom-right.
+   On mobile (breakdown-on-the-motorway):
+     full-width split bottom bar — always visible, never hidden.
+   ========================================================= */
+:root {
+  --wa-green:        #25D366;
+  --wa-green-dark:   #1da851;
+}
+
+.float-stack {
+  position: fixed; bottom: 18px; right: 18px; z-index: 60;
+  display: flex; flex-direction: column-reverse; gap: 12px;
+  pointer-events: none;                       /* children re-enable */
+}
+.float-stack > a {
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+
+.float-call,
+.float-wa {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  width: 64px; height: 64px;
+  color: #fff; line-height: 1;
+  box-shadow: 0 4px 14px rgba(0,0,0,.5);
+}
+.float-call { background: var(--red); animation: pulseCall 2.4s infinite; }
+.float-wa   { background: var(--wa-green); }
+.float-call:hover { background: #d12d3a; color: #fff; }
+.float-wa:hover   { background: var(--wa-green-dark); color: #fff; }
+
+.float-call .fc-icon,
+.float-wa   .fc-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.float-call .fc-icon svg,
+.float-wa   .fc-icon svg { width: 28px; height: 28px; display: block; }
+
+/* On desktop, only the icon is visible — the labels are kept in the DOM
+   for screen readers but visually collapsed inside the round pill. */
+.float-call .fc-text,
+.float-wa   .fc-text { display: none; }
+
+@keyframes pulseCall {
+  0%, 100% { box-shadow: 0 4px 14px rgba(0,0,0,.5), 0 0 0 0 rgba(230,57,70,.6); }
+  50%      { box-shadow: 0 4px 14px rgba(0,0,0,.5), 0 0 0 14px rgba(230,57,70,0); }
+}
+
+/* ---------- Mobile: full-width split bottom bar ---------- */
+@media (max-width: 880px) {
+  .float-stack {
+    bottom: 0; right: 0; left: 0;
+    flex-direction: row;
+    gap: 0;
+    border-top: 3px solid #fff;
+    box-shadow: 0 -4px 16px rgba(0,0,0,.6);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .float-call,
+  .float-wa {
+    flex: 1 1 0;
+    width: auto; height: auto;
+    min-height: 68px;
+    padding: 10px 14px;
+    border-radius: 0;
+    gap: 12px;
+    justify-content: center;
+    box-shadow: none;
+    animation: none;                       /* static = control, not notification */
+  }
+  .float-call { flex: 1.4 1 0; }           /* slight bias toward Call */
+
+  .float-call .fc-icon,
+  .float-wa   .fc-icon {
+    background: #fff;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .float-call .fc-icon { color: var(--red); }
+  .float-wa   .fc-icon { color: var(--wa-green); }
+  .float-call .fc-icon svg,
+  .float-wa   .fc-icon svg { width: 24px; height: 24px; }
+
+  .float-call .fc-text,
+  .float-wa   .fc-text {
+    display: flex; flex-direction: column;
+    line-height: 1.05; text-align: left;
+    min-width: 0;
+  }
+  .fc-label {
+    font-size: .72rem; font-weight: 600;
+    letter-spacing: .04em; text-transform: uppercase;
+    color: #ffffff;                /* was rgba(255,255,255,.85) — failed AA on red/green */
+    opacity: .92;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .fc-num {
+    font-family: var(--font-display);
+    font-size: 1.45rem; letter-spacing: .03em;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .float-wa .fc-num { font-size: 1.55rem; }   /* "WhatsApp" reads better a touch larger */
+
+  /* Stop the footer (and final CTAs) hiding behind the bar */
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Tightest phones — drop the secondary labels so the digits stay clear */
+@media (max-width: 380px) {
+  .float-call .fc-label,
+  .float-wa .fc-label { display: none; }
+  .float-call .fc-num { font-size: 1.3rem; }
+  .float-wa .fc-num   { font-size: 1.35rem; }
+  .float-call,
+  .float-wa { padding: 10px 10px; gap: 10px; }
+}
+
+/* =========================================================
+   Share-my-location button (lives inside .hero-cta)
+   ========================================================= */
+.btn-share-loc {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 22px;
+  font-family: var(--font-display); font-size: 1.1rem;
+  letter-spacing: .06em; text-transform: uppercase;
+  background: var(--white); color: #000;
+  border: 0; border-radius: var(--radius);
+  cursor: pointer;
+  box-shadow: 0 6px 0 #888;
+  transition: transform .12s ease, background .18s ease, box-shadow .18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-share-loc:hover { background: var(--yellow); }
+.btn-share-loc:active { transform: translateY(2px); box-shadow: 0 2px 0 #777; }
+.btn-share-loc .bsl-icon { font-size: 1.2rem; line-height: 1; }
+.btn-share-loc.is-locating {
+  background: #fff7d6; color: #000;
+  cursor: wait;
+}
+.btn-share-loc.is-locating .bsl-icon::after {
+  content: ""; display: inline-block; width: 14px; height: 14px;
+  border: 2px solid #000; border-top-color: transparent;
+  border-radius: 50%;
+  animation: bslSpin .9s linear infinite;
+  margin-left: 6px; vertical-align: -2px;
+}
+.btn-share-loc.is-success {
+  background: #6dba2c; color: #000;
+}
+.btn-share-loc.is-error {
+  background: var(--red); color: #fff;
+  box-shadow: 0 6px 0 #a8232f;
+}
+@keyframes bslSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .btn-share-loc.is-locating .bsl-icon::after { animation: none; }
+}
+
+/* =========================================================
+   Split block — used for service rows on services.html and the
+   image+text panes on area pages. Now a hero-card style with the
+   photo as background and text overlaid via a dark gradient.
+   ========================================================= */
+.split {
+  position: relative;
+  min-height: 380px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--jet);
+  display: flex;
+  align-items: stretch;
+}
+.split > img,
+.split > picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  margin: 0;
+}
+.split > img,
+.split > picture > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;       /* favour the upper third of portrait photos where the truck usually is */
+}
+.split::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.92) 0%,
+    rgba(0,0,0,0.78) 35%,
+    rgba(0,0,0,0.42) 62%,
+    rgba(0,0,0,0.05) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+.split > div {
+  position: relative;
+  z-index: 2;
+  padding: 44px 40px;
+  max-width: 60%;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.split > div h3 {
+  color: var(--orange);
+  font-size: 1.7rem;
+  margin-bottom: 12px;
+  text-shadow: 0 1px 0 rgba(0,0,0,.6);
+}
+.split > div p,
+.split > div ul,
+.split > div li {
+  color: #f1f1f1;
+  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+}
+.split > div ul { padding-left: 1.2em; margin: 0 0 18px; }
+.split > div li { margin-bottom: 4px; }
+.split > div li a { color: var(--yellow); text-decoration: underline; text-decoration-color: rgba(255,194,14,.4); }
+.split > div .btn { box-shadow: 0 6px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3); }
+
+@media (max-width: 880px) {
+  .split { min-height: 460px; }
+  .split > div { max-width: 100%; padding: 36px 26px; }
+  .split::after {
+    /* Stronger gradient on mobile so the text stays legible over the
+       full-width image */
+    background: linear-gradient(180deg,
+      rgba(0,0,0,0.45) 0%,
+      rgba(0,0,0,0.75) 40%,
+      rgba(0,0,0,0.92) 100%);
+  }
+  .split > div { justify-content: flex-end; }
+}
+@media (max-width: 480px) {
+  .split { min-height: 420px; }
+  .split > div h3 { font-size: 1.4rem; }
+}
+
+/* =========================================================
+   Print stylesheet — primarily for the motorway safety guide
+   so it reads cleanly on paper and prints to a single page or two.
+   Glove-box-ready.
+   ========================================================= */
+@media print {
+  /* Print colour-on-white for readability + ink savings */
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  /* Hide all the on-screen chrome that doesn't belong on paper */
+  .site-header,
+  .stripe,
+  .site-footer,
+  .float-stack, .float-call, .float-wa,
+  .skip-link,
+  .cookie-banner,
+  .nav-toggle,
+  .nav-links,
+  .hero-cta,
+  .step-actions,
+  .cta-banner,
+  .btn,
+  #share,
+  .btn-share-loc {
+    display: none !important;
+  }
+
+  /* The life-safety alert is the most important thing to print */
+  .safety-alert {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #000 !important;
+    padding: 10pt !important;
+    margin-bottom: 14pt !important;
+    page-break-inside: avoid;
+  }
+  .safety-alert .container { font-size: 12pt; }
+
+  /* Make sure step cards are clean monochrome boxes */
+  .step {
+    background: #fff !important;
+    border: 1px solid #000 !important;
+    border-left: 8pt solid #000 !important;
+    box-shadow: none !important;
+    padding: 10pt 12pt !important;
+    margin-bottom: 10pt !important;
+    page-break-inside: avoid;
+  }
+  .step--critical {
+    background: #f4f4f4 !important;
+    border-left-width: 14pt !important;
+  }
+  .step__num {
+    background: #fff !important;
+    color: #000 !important;
+    border: 2px solid #000 !important;
+    width: 36pt !important; height: 36pt !important;
+    font-size: 18pt !important;
+  }
+  .step__body h2 { color: #000 !important; font-size: 13pt !important; margin-bottom: 4pt !important; }
+  .step__body h2 .accent { color: #000 !important; font-weight: 700; }
+  .step__body p, .step__body li { color: #000 !important; font-size: 10.5pt !important; }
+  .step__body strong { color: #000 !important; }
+
+  /* Generic content typography */
+  h1, h2, h3 { color: #000 !important; page-break-after: avoid; }
+  h1 { font-size: 22pt !important; }
+  h2 { font-size: 14pt !important; }
+  h3 { font-size: 12pt !important; }
+  a { color: #000 !important; text-decoration: underline; }
+  /* Print external URLs in brackets after links so the printout is self-sufficient */
+  a[href^="http"]:not([href*="bigbenstowingandrecovery"])::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt; word-break: break-all;
+  }
+
+  /* Avoid awkward orphan headings/sections */
+  section { page-break-inside: avoid; }
+  .grid, .why-grid { gap: 8pt !important; }
+  .card, .why-item {
+    background: #fff !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    padding: 8pt !important;
+    page-break-inside: avoid;
+  }
+
+  /* Print a header on the safety page so a paper copy is identifiable */
+  body::before {
+    content: "Big Ben's Towing & Recovery — 07754 984 147 — bigbenstowingandrecovery.co.uk";
+    display: block;
+    font-family: var(--font-display, sans-serif);
+    font-size: 10pt;
+    border-bottom: 2pt solid #000;
+    padding-bottom: 4pt;
+    margin-bottom: 12pt;
+  }
+
+  /* Forms / interactive things hidden — paper can't fill in a quote */
+  form, .form-card, #share, .gallery, .testimonials, .recent-jobs { display: none !important; }
+}
+
+/* Contact page: side-by-side panels on tablet/desktop, stacked on mobile */
+.contact-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+@media (max-width: 720px) {
+  .contact-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* Inline WhatsApp link (contact page) — branded but understated */
+.wa-inline-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: var(--wa-green); color: #fff;
+  font-family: var(--font-display); letter-spacing: .04em; text-transform: uppercase;
+  font-size: 1rem; border-radius: 4px;
+  box-shadow: 0 3px 0 var(--wa-green-dark);
+}
+.wa-inline-link:hover { background: var(--wa-green-dark); color: #fff; }
+
+/* =========================================================
+   Safety / breakdown page — step list with urgency colours
+   ========================================================= */
+.safety-alert {
+  background: linear-gradient(90deg, var(--red), #c4202d);
+  color: #fff;
+  padding: 14px 0;
+  text-align: center;
+  border-bottom: 3px solid #fff;
+}
+.safety-alert strong { display: inline-block; margin-right: 6px; }
+.safety-alert .container { font-size: 1.05rem; }
+@media (max-width: 720px) {
+  .safety-alert .container { font-size: .95rem; }
+  .safety-alert strong { display: block; margin: 0 0 4px; }
+}
+
+.step-list { list-style: none; padding: 0; margin: 0; counter-reset: step; }
+.step {
+  display: flex; gap: 22px; align-items: flex-start;
+  background: var(--jet-2);
+  border: 1px solid #2a2a2a;
+  border-left: 6px solid var(--orange);
+  border-radius: var(--radius);
+  padding: 28px 28px 24px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+.step--urgent   { border-left-color: var(--orange); }
+.step--critical { border-left-color: var(--red); background: linear-gradient(90deg, #2c1414 0%, var(--jet-2) 30%); }
+.step--cta      { border-left-color: var(--wa-green); }
+
+.step__num {
+  flex-shrink: 0;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: #0a0a0a;
+  border: 2px solid var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--orange);
+  line-height: 1;
+}
+.step--critical .step__num { border-color: var(--red); color: var(--red); }
+.step--cta      .step__num { border-color: var(--wa-green); color: var(--wa-green); }
+
+.step__body { flex: 1 1 0; min-width: 0; }
+.step__body h2 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: var(--white);
+  line-height: 1.15;
+}
+.step__body h2 .accent { color: var(--orange); }
+.step--critical .step__body h2 .accent { color: var(--red); }
+.step__body p, .step__body li {
+  color: #d8d8d8;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.step__body ul, .step__body ol { padding-left: 1.3em; margin: 8px 0 0; }
+.step__body li { margin-bottom: 6px; }
+.step__body li strong { color: #fff; }
+
+.step-actions {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+/* =========================================================
+   404 page
+   ========================================================= */
+.not-found { padding: 80px 0; text-align: center; }
+.not-found .container { max-width: 720px; }
+.nf-num {
+  font-family: var(--font-display);
+  font-size: clamp(8rem, 22vw, 14rem);
+  line-height: .9;
+  color: var(--orange);
+  letter-spacing: -.02em;
+  text-shadow: 0 6px 0 #c95300;
+  margin-bottom: 8px;
+  -webkit-text-stroke: 0.6px currentColor;
+}
+.not-found h1 { margin-bottom: 18px; }
+.not-found .lede { color: #d8d8d8; font-size: 1.15rem; max-width: 520px; margin: 0 auto 28px; }
+.nf-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 56px; }
+.nf-help {
+  background: var(--jet-2);
+  padding: 28px;
+  border-radius: var(--radius);
+  border-top: 4px solid var(--yellow);
+  text-align: left;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.nf-help p { color: var(--yellow); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .9rem; margin: 0 0 12px; }
+.nf-help ul { padding-left: 1.2em; margin: 0; }
+.nf-help li { color: #d8d8d8; margin-bottom: 8px; }
+.nf-help a { color: #fff; text-decoration: underline; }
+.nf-help a:hover { color: var(--yellow); }
+@media (max-width: 720px) {
+  .not-found { padding: 48px 0; }
+  .nf-actions .btn { width: 100%; max-width: 360px; justify-content: center; }
+}
+
+@media (max-width: 720px) {
+  .step { gap: 14px; padding: 20px 18px 18px; flex-direction: row; }
+  .step__num { width: 48px; height: 48px; font-size: 1.6rem; }
+  .step__body h2 { font-size: 1.2rem; }
+  .step-actions .btn { width: 100%; justify-content: center; }
+}
+@media (max-width: 480px) {
+  .step { flex-direction: column; gap: 10px; padding: 18px 16px; }
+  .step__num { width: 44px; height: 44px; font-size: 1.4rem; }
+}
+
+/* Sample-prices table (used on every area page) */
+.form-card table { width: 100%; border-collapse: collapse; color: var(--white); font-size: .98rem; }
+.form-card th, .form-card td { padding: 10px 8px; }
+.form-card th { font-family: var(--font-display); letter-spacing: .04em; color: var(--yellow); font-weight: 400; font-size: .95rem; }
+.form-card tbody tr + tr td { border-top: 1px solid #2a2a2a; }
+@media (max-width: 480px) {
+  .form-card table { font-size: .9rem; }
+  .form-card th, .form-card td { padding: 8px 4px; }
+  .form-card td:first-child { font-size: .85rem; line-height: 1.3; }
+}
+.split img { border-radius: var(--radius); border: 2px solid #000; }

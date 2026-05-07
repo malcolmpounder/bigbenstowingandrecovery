@@ -1,0 +1,45 @@
+{
+  "_comment": "Hand-edit this file to manage homepage testimonials. Empty 'reviews' array = section auto-hides. Replace placeholders with real customer reviews as they come in. Each entry needs quote, name, town, date (YYYY-MM-DD). Optional: vehicle, rating (1-5), source ('Google'/'Facebook'/'direct').",
+  "reviews": [
+    {
+      "_template": "REPLACE WITH REAL REVIEW",
+      "quote": "Broke down on the A1(M) at 11pm with the kids in the car. Big Ben was with us inside 35 minutes, friendly, calm, and got us home for £52. Couldn't ask for more.",
+      "name": "[Customer Name]",
+      "town": "[Town]",
+      "vehicle": "[Vehicle]",
+      "date": "2026-04-15",
+      "rating": 5,
+      "source": "Google"
+    },
+    {
+      "_template": "REPLACE WITH REAL REVIEW",
+      "quote": "Used Big Ben's to collect a classic from BCA Bedlington. Photos at pickup, photos at drop, the car arrived spotless and on time. Will be using them every auction from now on.",
+      "name": "[Trade Customer]",
+      "town": "[Bodyshop name]",
+      "vehicle": "1972 MGB GT",
+      "date": "2026-04-08",
+      "rating": 5,
+      "source": "direct"
+    },
+    {
+      "_template": "REPLACE WITH REAL REVIEW",
+      "quote": "Phone answered first ring at 2am, gave a price up-front, no hidden extras. Truck arrived in 40 minutes. Genuinely lovely man.",
+      "name": "[Customer Name]",
+      "town": "[Town]",
+      "vehicle": "[Vehicle]",
+      "date": "2026-03-22",
+      "rating": 5,
+      "source": "Google"
+    },
+    {
+      "_template": "REPLACE WITH REAL REVIEW",
+      "quote": "MOT failure on a 19-year-old Focus. Got more for the scrap from Big Ben's than I would have driving it to the yard myself, and they came to me. Cash on the day.",
+      "name": "[Customer Name]",
+      "town": "[Town]",
+      "vehicle": "Ford Focus 2007",
+      "date": "2026-03-10",
+      "rating": 5,
+      "source": "Facebook"
+    }
+  ]
+}

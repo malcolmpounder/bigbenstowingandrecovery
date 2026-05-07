@@ -1,0 +1,55 @@
+# Cloudflare Pages — short URLs and clean-URL handling
+# https://developers.cloudflare.com/pages/configuration/redirects/
+#
+# Format: <source>  <destination>  [<status>]
+# 301 = permanent redirect (default), 200 = rewrite (no URL change)
+
+# ---- Memorable short paths (good for print/business cards/van wraps) ----
+/breakdown                 /motorway-breakdown.html         301
+/motorway                  /motorway-breakdown.html         301
+/safety                    /motorway-breakdown.html         301
+/scrap-my-car              /scrap.html                      301
+/scrap-car                 /scrap.html                      301
+/recovery                  /services.html                   301
+/quote                     /quote.html                      301
+/cost                      /quote.html                      301
+/areas                     /areas.html                      301
+/help                      /faq.html                        301
+/questions                 /faq.html                        301
+/about                     /about.html                      301
+/trade                     /trade.html                      301
+/auctions                  /auction-collection.html         301
+/copart                    /auction-collection.html         301
+/bca                       /auction-collection.html         301
+/motorbike                 /motorbike-recovery.html         301
+/motorbikes                /motorbike-recovery.html         301
+/bike-recovery             /motorbike-recovery.html         301
+/classic                   /classic-car-transport.html      301
+/classics                  /classic-car-transport.html      301
+/ev                        /ev-recovery.html                301
+/electric                  /ev-recovery.html                301
+/tesla                     /ev-recovery.html                301
+
+# ---- Common typos / pluralisation ----
+/services                  /services.html                   301
+/contacts                  /contact.html                    301
+/services/                 /services.html                   301
+
+# ---- Extension-less canonical mappings (so /durham works, not just /durham.html) ----
+/durham                    /areas/durham.html               301
+/newcastle                 /areas/newcastle-upon-tyne.html  301
+/sunderland                /areas/sunderland.html           301
+/hartlepool                /areas/hartlepool.html           301
+/middlesbrough             /areas/middlesbrough.html        301
+/darlington                /areas/darlington.html           301
+/chester-le-street         /areas/chester-le-street.html    301
+/seaham                    /areas/seaham.html               301
+/peterlee                  /areas/peterlee.html             301
+
+# ---- Legacy / typo handling ----
+/motorway-recovery         /motorway-breakdown.html         301
+/cash-for-cars             /scrap.html                      301
+/cash-for-car              /scrap.html                      301
+
+# ---- 404 fallback (Cloudflare auto-detects /404.html, but explicit is clearer) ----
+/*                         /404.html                        404
