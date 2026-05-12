@@ -1,15 +1,21 @@
 /* =========================================================
    Cloudflare Pages Function — /api/reg-lookup
-   Mirrors the local mock in scripts/serve.js so the scrap
-   calculator works identically in dev and prod.
+   Two-tier vehicle lookup:
+     1. DVLA Vehicle Enquiry Service (free, fast, returns
+        make/year/fuel/colour but rarely model)
+     2. DVSA MOT History API fallback (free with OAuth, fills
+        in model when DVLA didn't)
 
-   Deployment notes:
-     • This file is auto-routed by Cloudflare Pages because of
-       its location: /functions/api/reg-lookup.js → /api/reg-lookup
-     • In the Pages dashboard, set environment variable:
-         DVLA_VES_KEY = <key from
-           https://developer-portal.driver-vehicle-licensing.api.gov.uk/>
-     • Optional: DVSA_MOT_KEY for richer model data (not used yet).
+   Env vars (Pages → Settings → Environment vars):
+     DVLA_VES_KEY             — DVLA VES API key
+     DVSA_MOT_CLIENT_ID       — DVSA app registration client ID
+     DVSA_MOT_CLIENT_SECRET   — DVSA app registration client secret
+     DVSA_MOT_API_KEY         — DVSA API key (separate from OAuth)
+     DVSA_MOT_TOKEN_URL       — Microsoft Entra ID token endpoint
+
+   The DVSA OAuth access_token is cached in module scope until 1 min
+   before its expiry. Cloudflare reuses isolates across requests, so
+   one token typically covers a few hundred lookups before refresh.
 
    Response shape (matches site/js/scrap.js expectations):
      200  { make, model, year, fuel, colour, source }
@@ -18,6 +24,73 @@
      500  { error }   upstream / parse error
      503  { error }   no DVLA_VES_KEY configured
    ========================================================= */
+
+// ---- DVSA OAuth token cache (module scope = per isolate) ----
+let cachedDvsaToken = null;   // { token, expiresAt }
+
+async function getDvsaToken(env) {
+  const now = Date.now();
+  if (cachedDvsaToken && cachedDvsaToken.expiresAt > now + 60_000) {
+    return cachedDvsaToken.token;
+  }
+  const form = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: env.DVSA_MOT_CLIENT_ID,
+    client_secret: env.DVSA_MOT_CLIENT_SECRET,
+    scope: 'https://tapi.dvsa.gov.uk/.default'
+  });
+  const r = await fetch(env.DVSA_MOT_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: form.toString()
+  });
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    throw new Error('DVSA token fetch failed: ' + r.status + ' ' + t.slice(0, 200));
+  }
+  const j = await r.json();
+  cachedDvsaToken = {
+    token: j.access_token,
+    expiresAt: now + ((j.expires_in || 3600) * 1000)
+  };
+  return cachedDvsaToken.token;
+}
+
+// Fetch model + extra detail from DVSA MOT History API.
+// Returns null if not configured / not found / errors — never throws.
+async function dvsaLookup(env, reg) {
+  if (!env.DVSA_MOT_CLIENT_ID || !env.DVSA_MOT_CLIENT_SECRET ||
+      !env.DVSA_MOT_API_KEY || !env.DVSA_MOT_TOKEN_URL) {
+    return null;
+  }
+  try {
+    const token = await getDvsaToken(env);
+    const r = await fetch(
+      'https://history.mot.api.gov.uk/v1/trade/vehicles/registration/' + encodeURIComponent(reg),
+      {
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'x-api-key': env.DVSA_MOT_API_KEY,
+          'accept': 'application/json'
+        }
+      }
+    );
+    if (!r.ok) return null;          // 404 = unknown, anything else = silently degrade
+    const j = await r.json();
+    // The API has returned a single object or an array depending on whether
+    // there are multiple vehicles for that reg. Normalise to the first hit.
+    const v = Array.isArray(j) ? j[0] : j;
+    if (!v || (!v.make && !v.model)) return null;
+    return {
+      make:   (v.make   || '').toUpperCase(),
+      model:  (v.model  || '').toUpperCase(),
+      fuel:   (v.fuelType || v.fuel_type || '').toUpperCase(),
+      colour: (v.primaryColour || v.primary_colour || '').toUpperCase()
+    };
+  } catch (_) {
+    return null;
+  }
+}
 
 // Embedded fixtures — mirrors data/fixture-regs.json. Useful for demos
 // (e.g. a journalist or potential customer trying the test reg) and as a
@@ -90,14 +163,30 @@ export async function onRequestGet({ request, env }) {
       return json({ error: msg }, upstream.status === 404 ? 404 : 502);
     }
 
-    return json({
+    const result = {
       make:   j.make || '',
       model:  j.model || '',                 // VES rarely returns model
       year:   parseInt(j.yearOfManufacture, 10) || null,
       fuel:   j.fuelType || '',
       colour: j.colour || '',
       source: 'dvla-ves'
-    });
+    };
+
+    // If DVLA didn't give us a model, fall back to DVSA MOT history. We only
+    // bother when the model is missing because DVSA's a slower path (OAuth
+    // + separate fetch) and the make-only is enough for ~half our scrap
+    // quotes anyway.
+    if (!result.model) {
+      const extra = await dvsaLookup(env, reg);
+      if (extra) {
+        if (extra.model)  result.model  = extra.model;
+        if (!result.fuel   && extra.fuel)   result.fuel   = extra.fuel;
+        if (!result.colour && extra.colour) result.colour = extra.colour;
+        result.source = 'dvla-ves+dvsa-mot';
+      }
+    }
+
+    return json(result);
   } catch (e) {
     return json({ error: String((e && e.message) || e) }, 500);
   }

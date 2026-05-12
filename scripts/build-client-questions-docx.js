@@ -39,12 +39,13 @@ const QUESTIONS = [
   ['Email forwarding.', 'info@bigbenstowingandrecovery.co.uk will be set up shortly. Where should it forward to? (Your existing Gmail or personal email — please supply the address.)'],
   ['Hours.', 'Is "24/7" genuinely round-the-clock, or are there windows you definitely won’t answer? It’s better to be honest on the site than to overpromise.'],
   ['Insurance.', 'Please send your goods-in-transit policy provider and cover amount per vehicle, and your public liability cover amount. We will match the website wording to your actual policy.'],
-  ['Pricing.', 'Please confirm or correct: £1.75 per mile, £40 minimum on local jobs, +20% surcharge for urgent/priority dispatch, +15% surcharge for classics or low-clearance vehicles.'],
-  ['Scrap pricing.', 'Please confirm or correct: collections go to EMR Sunderland, current scrap rate £270 per tonne, £30 minimum payout even on tiny jobs.'],
+  ['Pricing.', 'Please confirm or correct (these figures are NOT shown on the public site — they\'re only used by the calculator and to confirm jobs by phone): £1.75 per mile (kept private at your request), £40 minimum on local jobs, +20% surcharge for urgent/priority dispatch, +15% surcharge for classics or low-clearance vehicles.'],
+  ['Scrap pricing.', 'Please confirm or correct (the £60/tonne IS shown publicly; the per-mile collection rate is NOT): flat £60/tonne (DVLA-derived kerb weight), £60 bonus for original cat, £25 bonus for factory alloys, £20 deducted if no V5C, free collection within 15 miles of base then £1.75/mile beyond (kept private), £30 minimum payout.'],
   ['Card payments.', 'Do you have a Stripe account already set up? And do you carry a card reader (SumUp, Square or Stripe Reader) for on-the-spot payment? If not, we will need to set those up before launch.'],
   ['Photos.', 'The seven photos on the site (Jaguar, Mercedes, motorbike, van, branded truck, night shot, logo) — are they yours with permission to use? Any newer or better photos to add?'],
   ['Google Business Profile.', 'Do you have one already? Please send the link. If not, please set one up — it is free, takes ten minutes, and lets us pull live reviews onto the site.'],
-  ['DVLA reg lookup.', 'The scrap calculator looks up any UK reg automatically (make, model, year) via the DVLA’s free API. We need you to apply for a free API key — it takes 5–10 working days. Are you OK to apply? I will send you the link.']
+  ['DVLA reg lookup.', 'The scrap calculator looks up any UK reg automatically (make, model, year) via the DVLA’s free API. We need you to apply for a free API key — it takes 5–10 working days. Are you OK to apply? I will send you the link.'],
+  ['Daily summary email.', 'Would you find it useful to receive one email at 7am each day with: yesterday’s completed jobs, today’s booked jobs (deposit paid + pending), week-to-date income, and any flagged issues? It is no extra cost — just a switch we can flick on. If yes, what email address should it go to?']
 ];
 
 const children = [];

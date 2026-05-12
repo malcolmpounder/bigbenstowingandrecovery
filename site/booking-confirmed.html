@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Booking confirmed — Big Ben's Towing &amp; Recovery</title>
+<meta name="description" content="Your recovery booking is locked in. We'll be in touch to confirm pickup time." />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#0d0d0d" />
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/img/icon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="canonical" href="https://bigbenstowingandrecovery.co.uk/booking-confirmed" />
+<link rel="stylesheet" href="/css/fonts.css" />
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/"><img src="/img/logo.jpg" alt="" width="256" height="171" /><div><div class="name">BIG BEN'<span>S</span></div><div class="tag">Towing &amp; Recovery</div></div></a>
+    <nav class="nav-links">
+      <a href="/">Home</a><a href="/services">Services</a>
+      <a href="/quote">Get a Quote</a><a href="/contact">Contact</a>
+    </nav>
+    <a class="btn btn-call danger" href="tel:+447754984147">07754&nbsp;984&nbsp;147</a>
+  </div>
+</header>
+<div class="stripe"></div>
+
+<section style="padding:60px 0;">
+  <div class="container" style="max-width:760px;">
+    <div class="form-card" id="confirmCard">
+      <div style="text-align:center; padding:8px 0 24px;">
+        <div style="font-size:64px; line-height:1;">✅</div>
+        <h1 style="margin:14px 0 4px;">Deposit received — booking is locked in.</h1>
+        <p style="margin:0; color:var(--grey);">We'll ring you in the next few minutes to confirm pickup.</p>
+      </div>
+
+      <div id="bookingDetails">
+        <p style="text-align:center; color:var(--grey);">Loading your booking details…</p>
+      </div>
+
+      <div style="margin-top:24px; padding-top:24px; border-top:1px solid #2a2a2a; text-align:center;">
+        <p style="margin:0 0 14px;">Save this page or screenshot it — your booking ref is at the top.</p>
+        <a class="btn danger btn-call" href="tel:+447754984147">Call us — 07754 984 147</a>
+        <a class="btn ghost" href="/">Back to home</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stripe"></div>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div><p>Family-run recovery in the North East. Based in Great Lumley, DH3 4HU.</p></div>
+    <div><h3>Get In Touch</h3><p>📞 <a href="tel:+447754984147">07754&nbsp;984&nbsp;147</a><br/>✉️ <a href="mailto:info@bigbenstowingandrecovery.co.uk">info@bigbenstowingandrecovery.co.uk</a></p></div>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+(function () {
+  // Read session_id from query string and ask the API for the human details.
+  var url = new URL(window.location.href);
+  var sid = url.searchParams.get('session_id');
+  var box = document.getElementById('bookingDetails');
+
+  if (!sid) {
+    box.innerHTML = '<p style="text-align:center; color:#ff8088;">No booking reference in the URL — please call us on 07754&nbsp;984&nbsp;147 to confirm.</p>';
+    return;
+  }
+
+  fetch('/api/checkout-summary?session_id=' + encodeURIComponent(sid))
+    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+    .then(function (resp) {
+      if (!resp.ok) {
+        box.innerHTML = '<p style="text-align:center; color:#ff8088;">Could not load booking details. Your payment was successful — please call us with this reference: <strong>' + sid.slice(0, 14) + '…</strong></p>';
+        return;
+      }
+      var b = resp.body;
+      var ref = (b.id || sid).slice(-8).toUpperCase();
+      // For small jobs we charge the full amount up-front, so balance is £0
+      // and the customer needs different messaging — no "pay balance" CTA.
+      var balanceAmt = parseInt(b.balance || '0', 10);
+      var paidInFull = balanceAmt <= 0;
+      box.innerHTML =
+        '<div style="text-align:center; margin-bottom:20px;">' +
+          '<div style="color:var(--grey); font-size:.85rem; text-transform:uppercase; letter-spacing:.08em;">Booking reference</div>' +
+          '<div style="font-family:var(--font-display); font-size:2rem; letter-spacing:.06em; color:var(--accent);">BB-' + ref + '</div>' +
+        '</div>' +
+        '<div class="breakdown" style="background:rgba(255,255,255,.04); padding:16px; border-radius:6px;">' +
+          '<div><span>Pickup</span><span>' + (b.pickup || '?') + '</span></div>' +
+          '<div><span>Drop-off</span><span>' + (b.dropoff || '?') + '</span></div>' +
+          '<div><span>Total quote</span><span>£' + (b.total || '?') + '</span></div>' +
+          (paidInFull
+            ? '<div style="font-weight:700; color:#5cdb71;"><span>Paid</span><span>✓ £' + (b.deposit || b.total || '?') + ' (full)</span></div>'
+            : '<div><span>Deposit paid</span><span>✓ £' + (b.deposit || '50') + '</span></div>' +
+              '<div style="font-weight:700;"><span>Balance on drop-off</span><span>£' + balanceAmt + '</span></div>'
+          ) +
+        '</div>' +
+        (paidInFull
+          ? '<div style="margin-top:18px; padding:14px; background:rgba(108,219,113,.1); border-left:3px solid #5cdb71; border-radius:4px;">' +
+              '<p style="margin:0; font-weight:600;">Paid in full — nothing more to pay on drop-off.</p>' +
+            '</div>'
+          : '<div style="margin-top:18px; padding:14px; background:rgba(255,200,0,.08); border-left:3px solid var(--yellow); border-radius:4px;">' +
+              '<p style="margin:0 0 8px; font-weight:600;">Paying the balance</p>' +
+              '<p style="margin:0; font-size:.95rem;">Cash on drop-off, OR pay by card via the website: <a href="/pay-balance?ref=' + encodeURIComponent(sid) + '" style="color:var(--accent);">bigbenstowingandrecovery.co.uk/pay-balance</a></p>' +
+            '</div>'
+        );
+    })
+    .catch(function () {
+      box.innerHTML = '<p style="text-align:center; color:#ff8088;">Connection problem loading details — your payment was successful. Reference: ' + sid.slice(0, 14) + '</p>';
+    });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Receipt — Big Ben's Towing &amp; Recovery</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png" />
+<link rel="stylesheet" href="/css/fonts.css" />
+<style>
+  /* Receipt is a deliberately plain, print-clean page. Black ink on white,
+     A4 friendly. Browser's "Print to PDF" does the rest. */
+  :root {
+    --ink:    #0d0d0d;
+    --muted:  #5a5a5a;
+    --rule:   #d6d6d6;
+    --accent: #e85b14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, Arial, sans-serif;
+    color: var(--ink); background: #fff; margin: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .receipt {
+    max-width: 720px; margin: 32px auto; padding: 32px;
+    background: #fff;
+  }
+  header.r-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    border-bottom: 2px solid var(--accent); padding-bottom: 18px; margin-bottom: 22px;
+  }
+  .brand-block .name {
+    font-family: 'Anton', sans-serif; font-size: 1.8rem; line-height: 1; letter-spacing: .04em;
+  }
+  .brand-block .name span { color: var(--accent); }
+  .brand-block .tag { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .brand-block .addr { font-size: .82rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  .doc-meta { text-align: right; font-size: .85rem; }
+  .doc-meta .doc-title { font-family: 'Anton', sans-serif; font-size: 1.4rem; letter-spacing: .04em; }
+  .doc-meta .ref { font-family: 'Anton', sans-serif; color: var(--accent); font-size: 1.05rem; margin-top: 4px; }
+  .doc-meta .when { color: var(--muted); margin-top: 8px; }
+
+  h2 { font-family: 'Anton', sans-serif; letter-spacing: .04em; font-size: 1rem; text-transform: uppercase; color: var(--muted); margin: 24px 0 8px; }
+  table.line-items {
+    width: 100%; border-collapse: collapse;
+  }
+  table.line-items th, table.line-items td {
+    text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--rule); font-size: .95rem;
+  }
+  table.line-items th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  table.line-items td.amount, table.line-items th.amount { text-align: right; }
+  .totals { width: 100%; margin-top: 8px; font-size: .98rem; }
+  .totals .row { display: flex; justify-content: space-between; padding: 6px 8px; }
+  .totals .row.sub { color: var(--muted); }
+  .totals .row.grand {
+    border-top: 2px solid var(--accent); margin-top: 6px; padding-top: 12px;
+    font-family: 'Anton', sans-serif; font-size: 1.3rem; letter-spacing: .03em;
+  }
+  .totals .row.grand.paid::after {
+    content: ' '; display: inline-block; margin-left: 10px;
+  }
+  .paid-stamp {
+    display: inline-block; padding: 4px 10px; background: #e6f4ea; color: #1a7f3c;
+    border: 2px solid #1a7f3c; border-radius: 4px;
+    font-family: 'Anton', sans-serif; letter-spacing: .08em; font-size: .85rem;
+    transform: rotate(-3deg); margin-left: 8px;
+  }
+
+  .footnote {
+    margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--rule);
+    font-size: .78rem; color: var(--muted); line-height: 1.5;
+  }
+  .actions { margin-top: 24px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .actions button {
+    background: var(--accent); color: #fff; border: 0; padding: 10px 18px;
+    border-radius: 4px; font-family: 'Anton', sans-serif; letter-spacing: .04em;
+    font-size: 1rem; cursor: pointer;
+  }
+  .actions a {
+    background: #fff; color: var(--ink); text-decoration: none;
+    border: 1px solid var(--ink); padding: 10px 18px; border-radius: 4px;
+    font-family: 'Anton', sans-serif; letter-spacing: .04em; font-size: 1rem;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .receipt { margin: 0; padding: 18mm; max-width: none; }
+    .actions, .no-print { display: none !important; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="receipt" id="receipt">
+  <header class="r-head">
+    <div class="brand-block">
+      <div class="name">BIG BEN'<span>S</span></div>
+      <div class="tag">Towing &amp; Recovery</div>
+      <div class="addr">
+        Great Lumley · Chester-le-Street · DH3 4HU<br/>
+        07754 984 147 · info@bigbenstowingandrecovery.co.uk<br/>
+        bigbenstowingandrecovery.co.uk
+      </div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-title">RECEIPT</div>
+      <div class="ref" id="ref">BB-XXXXXXXX</div>
+      <div class="when" id="when">—</div>
+    </div>
+  </header>
+
+  <div id="bodyBlock">
+    <p style="text-align:center; color:var(--muted);">Loading receipt…</p>
+  </div>
+
+  <div class="footnote">
+    Thank you for your business. Big Ben's Towing &amp; Recovery is a sole trader based in Great Lumley, County Durham. We are not currently VAT-registered; prices include all charges.<br/>
+    For queries about this receipt, ring 07754 984 147 quoting the reference above.
+  </div>
+</div>
+
+<div class="actions no-print">
+  <button type="button" id="printBtn">🖨️  Print or save as PDF</button>
+  <a href="/" class="no-print">← Back to website</a>
+</div>
+
+<script>
+(function () {
+  var url = new URL(window.location.href);
+  var sid = url.searchParams.get('session_id') || url.searchParams.get('ref');
+  var refEl  = document.getElementById('ref');
+  var whenEl = document.getElementById('when');
+  var bodyEl = document.getElementById('bodyBlock');
+  document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+
+  function fmtGBP(n) {
+    return new Intl.NumberFormat('en-GB', { style:'currency', currency:'GBP' }).format(n || 0);
+  }
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+    });
+  }
+
+  if (!sid || !/^cs_(test|live)_[A-Za-z0-9]+$/.test(sid)) {
+    bodyEl.innerHTML = '<p style="color:#a44; text-align:center; padding:30px 0;">No valid receipt reference in the URL. Please use the link from your confirmation email.</p>';
+    return;
+  }
+
+  fetch('/api/checkout-summary?session_id=' + encodeURIComponent(sid))
+    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+    .then(function (resp) {
+      if (!resp.ok) {
+        bodyEl.innerHTML = '<p style="color:#a44; text-align:center; padding:30px 0;">Could not load receipt details. Please call 07754&nbsp;984&nbsp;147 quoting <strong>' + escHtml(sid) + '</strong>.</p>';
+        return;
+      }
+      var b = resp.body;
+      refEl.textContent = 'BB-' + (b.id || sid).slice(-8).toUpperCase();
+      whenEl.textContent = new Date().toLocaleString('en-GB', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+      var deposit = parseInt(b.deposit || '0', 10);
+      var total   = parseInt(b.total   || '0', 10);
+      var balance = parseInt(b.balance || '0', 10);
+      var paidInFull = balance <= 0;
+
+      var lineItems =
+        '<table class="line-items">' +
+          '<thead><tr><th>Description</th><th class="amount">Amount</th></tr></thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>Vehicle recovery — ' + escHtml(b.pickup || '?') + ' → ' + escHtml(b.dropoff || '?') + '</td>' +
+              '<td class="amount">' + fmtGBP(total) + '</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>';
+
+      var totalsBlock =
+        '<div class="totals">' +
+          '<div class="row sub"><span>Total quote</span><span>' + fmtGBP(total) + '</span></div>' +
+          (paidInFull
+            ? '<div class="row sub"><span>Paid by card</span><span>− ' + fmtGBP(deposit || total) + '</span></div>' +
+              '<div class="row grand"><span>Paid in full</span><span>' + fmtGBP(deposit || total) + '<span class="paid-stamp">PAID</span></span></div>'
+            : '<div class="row sub"><span>Deposit paid</span><span>− ' + fmtGBP(deposit) + '</span></div>' +
+              '<div class="row grand"><span>Balance to pay on drop-off</span><span>' + fmtGBP(balance) + '</span></div>'
+          ) +
+        '</div>';
+
+      bodyEl.innerHTML =
+        '<h2>Job</h2>' + lineItems +
+        '<h2>Totals</h2>' + totalsBlock;
+    })
+    .catch(function () {
+      bodyEl.innerHTML = '<p style="color:#a44; text-align:center; padding:30px 0;">Connection error. Please try again or call 07754&nbsp;984&nbsp;147.</p>';
+    });
+})();
+</script>
+
+</body>
+</html>

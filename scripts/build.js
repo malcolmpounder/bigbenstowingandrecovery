@@ -29,6 +29,9 @@ const STEPS = [
   { name: 'AggregateRating injection',  script: 'inject-aggregate-rating.js' },
   { name: 'Inline critical CSS',        script: 'inline-critical-css.js'  },
 
+  // === Bundle Cloudflare Pages Functions into _worker.js ===
+  { name: 'Pages Functions → _worker.js', script: 'build-worker.js'        },
+
   // === Sitemap — must run last so it picks up the latest file mtimes ===
   { name: 'Sitemap',                    script: 'build-sitemap.js'        }
 ];

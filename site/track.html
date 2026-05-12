@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tracking your recovery — Big Ben's</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png" />
+<link rel="stylesheet" href="/css/leaflet.css" />
+<link rel="stylesheet" href="/css/fonts.css" />
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  body { padding: 0; }
+  .track-wrap { max-width: 720px; margin: 0 auto; padding: 16px; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 99px;
+    font-family: var(--font-display); letter-spacing: .04em; text-transform: uppercase;
+    font-size: .9rem;
+  }
+  .status-pill.live    { background: #1f3d1f; color: #a4d965; }
+  .status-pill.stale   { background: #3d3217; color: #ffd54a; }
+  .status-pill.waiting { background: #1a1a1a; color: #999; }
+  .status-pill.done    { background: #1a3d3d; color: #80d8d8; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+  #trackMap { height: 380px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.4); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<div class="track-wrap">
+  <div style="text-align:center; margin: 16px 0;">
+    <a href="/" style="color:#fff; text-decoration:none;">
+      <div style="font-family:var(--font-display); font-size:1.5rem;">BIG BEN'<span style="color:var(--accent);">S</span></div>
+      <div style="font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:#999;">Recovery in progress</div>
+    </a>
+  </div>
+
+  <div id="status" style="text-align:center; margin: 18px 0;">
+    <span class="status-pill waiting"><span class="pulse"></span> Waiting for driver…</span>
+  </div>
+
+  <div id="trackMap"></div>
+
+  <div id="info" style="text-align:center; color:#ccc; font-size:.95rem; line-height:1.5;">
+    Last update: <span id="lastSeen">—</span>
+  </div>
+
+  <div style="text-align:center; margin-top:24px;">
+    <a class="btn danger btn-call" href="tel:+447754984147">Call Big Ben's — 07754&nbsp;984&nbsp;147</a>
+  </div>
+
+  <p style="margin-top:32px; color:#666; font-size:.82rem; text-align:center; line-height:1.5;">
+    Tracking starts the moment Ben taps "On the way" on his phone, and stops when he marks the job complete.<br/>
+    If nothing's showing after 5 min, give us a ring — sometimes signal drops on rural routes.
+  </p>
+</div>
+
+<script src="/js/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  var url = new URL(window.location.href);
+  var ref = url.searchParams.get('ref') || '';
+  var statusEl = document.getElementById('status');
+  var lastSeen = document.getElementById('lastSeen');
+  var mapEl = document.getElementById('trackMap');
+
+  if (!ref) {
+    statusEl.innerHTML = '<span class="status-pill stale">No booking reference in the URL — please use the link from your text.</span>';
+    return;
+  }
+
+  // Self-host marker icons (same fix as on /areas)
+  L.Icon.Default.imagePath = '';
+  L.Icon.Default.prototype.options.iconUrl       = '/img/vendor/leaflet/marker-icon.png';
+  L.Icon.Default.prototype.options.iconRetinaUrl = '/img/vendor/leaflet/marker-icon-2x.png';
+  L.Icon.Default.prototype.options.shadowUrl     = '/img/vendor/leaflet/marker-shadow.png';
+
+  var map = L.map(mapEl, { center: [54.83, -1.55], zoom: 9, scrollWheelZoom: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+  }).addTo(map);
+
+  var truckIcon = L.divIcon({
+    className: 'bb-truck-marker',
+    html: '<div style="background:#e85b14; color:#fff; border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.4); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">🚚</div>',
+    iconSize: [36, 36], iconAnchor: [18, 18]
+  });
+  var marker = null;
+  var lastFresh = false;
+
+  function setStatus(html, kind) {
+    statusEl.innerHTML = '<span class="status-pill ' + (kind || 'waiting') + '">' + html + '</span>';
+  }
+
+  function poll() {
+    fetch('/api/driver-status?ref=' + encodeURIComponent(ref.replace(/^BB-/i, '')))
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+      .then(function (resp) {
+        if (!resp.ok || !resp.body.active) {
+          setStatus('<span class="pulse"></span> Waiting for driver…', 'waiting');
+          return;
+        }
+        var b = resp.body;
+        if (b.status === 'completed') {
+          setStatus('Trip complete', 'done');
+          return;
+        }
+        var loc = [b.lat, b.lng];
+        if (!marker) {
+          marker = L.marker(loc, { icon: truckIcon, zIndexOffset: 1000 }).addTo(map);
+          map.setView(loc, 12);
+        } else {
+          marker.setLatLng(loc);
+        }
+        if (b.fresh) {
+          setStatus('<span class="pulse"></span> Big Ben is on the way', 'live');
+          lastFresh = true;
+        } else {
+          setStatus('Last seen ' + Math.round(b.age_seconds / 60) + ' min ago', 'stale');
+        }
+        var when = new Date(b.updated);
+        lastSeen.textContent = when.toLocaleTimeString('en-GB');
+      })
+      .catch(function () { /* keep polling */ });
+  }
+
+  poll();
+  setInterval(poll, 20000); // every 20s
+})();
+</script>
+
+</body>
+</html>

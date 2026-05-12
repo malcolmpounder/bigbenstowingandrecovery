@@ -20,18 +20,21 @@
   # browsers gate behind script-src even though they don't execute as JS.
   # All actual executable inline JS has been moved to /js/*.js so this isn't
   # the typical XSS-amplifier it would normally be.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://*.tile.openstreetmap.org https://tile.openstreetmap.org; connect-src 'self' https://api.postcodes.io; frame-ancestors 'self'; form-action 'self'; base-uri 'self'
 
-# Static assets — long-cache, immutable. Versioned via filename so safe to
-# cache for a year. Override per-resource if you need shorter for a specific file.
+# Static assets:
+# - Images and fonts are content-stable, so 1 year + immutable.
+# - CSS / JS files are NOT content-hashed yet (no /js/main.abc123.js style),
+#   so a 1-year cache makes content updates take a year to roll out. Keep it
+#   short until we add fingerprinting; bust manually with ?v=N in the markup.
 /img/*
   Cache-Control: public, max-age=31536000, immutable
 
 /css/*
-  Cache-Control: public, max-age=31536000
+  Cache-Control: public, max-age=300, must-revalidate
 
 /js/*
-  Cache-Control: public, max-age=31536000
+  Cache-Control: public, max-age=300, must-revalidate
 
 # Self-hosted fonts — same long-cache policy as other static assets
 /fonts/*

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Driver tracker — Big Ben's</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png" />
+<link rel="stylesheet" href="/css/fonts.css" />
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  body { padding: 20px 16px; max-width: 480px; margin: 0 auto; }
+  .field { margin-bottom: 14px; }
+  .field input {
+    width: 100%; padding: 14px; font-size: 1.1rem;
+    background: #1a1a1a; color: #fff; border: 1px solid #333; border-radius: 4px;
+  }
+  .big-btn {
+    display: block; width: 100%; padding: 22px;
+    border: 0; border-radius: 6px; cursor: pointer;
+    font-family: var(--font-display); font-size: 1.4rem; letter-spacing: .04em;
+    text-transform: uppercase; color: #fff;
+    transition: background .2s;
+  }
+  .big-btn.start { background: #1a7f3c; }
+  .big-btn.stop  { background: #b03030; margin-top: 12px; }
+  .big-btn:disabled { opacity: .5; cursor: progress; }
+  .status { margin-top: 18px; padding: 12px; border-radius: 4px; font-size: .95rem; }
+  .status.idle    { background: #1a1a1a; color: #999; }
+  .status.live    { background: #1f3d1f; color: #a4d965; }
+  .status.error   { background: #3d1f1f; color: #ff8088; }
+  .stat-row { display:flex; justify-content:space-between; padding: 4px 0; font-size: .85rem; color: #ccc; }
+</style>
+</head>
+<body>
+
+<div style="text-align:center; margin: 12px 0 24px;">
+  <a href="/" style="color:#fff; text-decoration:none;">
+    <div style="font-family:var(--font-display); font-size:1.5rem;">BIG BEN'<span style="color:var(--accent);">S</span></div>
+    <div style="font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:#999;">Driver tracker</div>
+  </a>
+</div>
+
+<div id="loginCard">
+  <p>Sign in to start broadcasting your location to a customer's tracking page.</p>
+  <div class="field">
+    <label for="token">Driver token</label>
+    <input id="token" type="password" autocomplete="current-password" />
+  </div>
+  <button type="button" id="signinBtn" class="big-btn start">Sign in</button>
+  <p id="loginErr" style="color:#ff8088; margin-top:10px; font-size:.9rem;"></p>
+</div>
+
+<div id="trackerCard" style="display:none;">
+  <div class="field">
+    <label for="ref">Booking ref (e.g. <code>BB-A1B2C3D4</code>)</label>
+    <input id="ref" type="text" placeholder="BB-XXXXXXXX" autocapitalize="characters" />
+  </div>
+
+  <button type="button" id="startBtn" class="big-btn start">▶  Start broadcasting</button>
+  <button type="button" id="stopBtn"  class="big-btn stop"  style="display:none;">■  Stop broadcasting</button>
+
+  <div class="status idle" id="status">Idle. Enter a booking ref and tap Start.</div>
+
+  <div id="stats" style="margin-top:18px; display:none;">
+    <div class="stat-row"><span>Last ping</span><span id="lastPing">—</span></div>
+    <div class="stat-row"><span>Accuracy</span><span id="accuracy">—</span></div>
+    <div class="stat-row"><span>Pings sent</span><span id="pingCount">0</span></div>
+    <div class="stat-row"><span>Customer link</span><span><a id="customerLink" href="#" target="_blank" style="color:var(--accent);">open</a></span></div>
+  </div>
+
+  <p style="margin-top:24px; font-size:.85rem; color:#999;">
+    Keep this page open in the foreground while driving. Lock the screen and your phone may pause GPS — pin the tab if you can.
+  </p>
+</div>
+
+<script>
+(function () {
+  var loginCard = document.getElementById('loginCard');
+  var trackerCard = document.getElementById('trackerCard');
+  var tokenInput = document.getElementById('token');
+  var signinBtn = document.getElementById('signinBtn');
+  var loginErr = document.getElementById('loginErr');
+  var refInput = document.getElementById('ref');
+  var startBtn = document.getElementById('startBtn');
+  var stopBtn  = document.getElementById('stopBtn');
+  var statusEl = document.getElementById('status');
+  var statsEl  = document.getElementById('stats');
+  var lastPingEl = document.getElementById('lastPing');
+  var accuracyEl = document.getElementById('accuracy');
+  var pingCountEl = document.getElementById('pingCount');
+  var customerLink = document.getElementById('customerLink');
+  var STORE = 'bbDriverToken';
+  var watchId = null, pingTimer = null, pingCount = 0, lastPos = null;
+
+  function setStatus(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = 'status ' + (kind || 'idle');
+  }
+  function showLogin(msg) {
+    loginCard.style.display = 'block'; trackerCard.style.display = 'none';
+    if (msg) loginErr.textContent = msg;
+  }
+  function showTracker() {
+    loginCard.style.display = 'none'; trackerCard.style.display = 'block';
+  }
+  function token() { return sessionStorage.getItem(STORE) || ''; }
+
+  // Single sign-in attempt: ping driver-status to validate (any GET works)
+  // — actually we just trust the token until /api/driver-ping rejects it.
+  signinBtn.addEventListener('click', function () {
+    var t = tokenInput.value;
+    if (!t) return;
+    sessionStorage.setItem(STORE, t);
+    showTracker();
+  });
+
+  if (token()) showTracker();
+
+  function postPing(ref, lat, lng, accuracy, status) {
+    return fetch('/api/driver-ping', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token() },
+      body: JSON.stringify({ ref: ref, lat: lat, lng: lng, accuracy: accuracy, status: status || 'enroute' })
+    }).then(function (r) {
+      if (r.status === 401) { sessionStorage.removeItem(STORE); showLogin('Token rejected — sign in again.'); throw new Error('auth'); }
+      if (r.status === 503) { setStatus('Server tracking not yet configured (KV namespace missing).', 'error'); throw new Error('not-configured'); }
+      return r.ok;
+    });
+  }
+
+  function onPos(pos) {
+    lastPos = pos;
+    var lat = pos.coords.latitude, lng = pos.coords.longitude;
+    var acc = pos.coords.accuracy;
+    var ref = refInput.value.replace(/^BB-/i, '').trim();
+    if (!ref) return;
+    postPing(ref, lat, lng, acc).then(function (ok) {
+      if (!ok) return;
+      pingCount++;
+      lastPingEl.textContent = new Date().toLocaleTimeString('en-GB');
+      accuracyEl.textContent = '±' + Math.round(acc) + ' m';
+      pingCountEl.textContent = pingCount;
+      setStatus('🟢 Live — broadcasting every 30s', 'live');
+    }).catch(function () { /* error already shown */ });
+  }
+  function onErr(err) {
+    setStatus('GPS error: ' + (err.message || err.code), 'error');
+  }
+
+  startBtn.addEventListener('click', function () {
+    var ref = refInput.value.replace(/^BB-/i, '').trim();
+    if (!ref) { setStatus('Enter a booking reference first.', 'error'); return; }
+    if (!('geolocation' in navigator)) { setStatus("Browser can't read GPS.", 'error'); return; }
+
+    pingCount = 0;
+    setStatus('Locating…', 'idle');
+    statsEl.style.display = 'block';
+    customerLink.href = '/track?ref=' + encodeURIComponent(ref);
+
+    // First fix immediately, then watchPosition for updates while moving.
+    navigator.geolocation.getCurrentPosition(onPos, onErr, { enableHighAccuracy: true, timeout: 15000 });
+    watchId = navigator.geolocation.watchPosition(onPos, onErr, { enableHighAccuracy: true, maximumAge: 5000 });
+    // And a fallback re-ping every 30s in case watchPosition goes quiet
+    pingTimer = setInterval(function () { if (lastPos) onPos(lastPos); }, 30000);
+
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'block';
+  });
+
+  stopBtn.addEventListener('click', function () {
+    if (watchId != null) navigator.geolocation.clearWatch(watchId);
+    if (pingTimer)       clearInterval(pingTimer);
+    watchId = pingTimer = null;
+    var ref = refInput.value.replace(/^BB-/i, '').trim();
+    if (ref && lastPos) {
+      postPing(ref, lastPos.coords.latitude, lastPos.coords.longitude, lastPos.coords.accuracy, 'completed').catch(function () {});
+    }
+    setStatus('Stopped. Customer page will show "trip complete".', 'idle');
+    startBtn.style.display = 'block';
+    stopBtn.style.display = 'none';
+  });
+})();
+</script>
+
+</body>
+</html>

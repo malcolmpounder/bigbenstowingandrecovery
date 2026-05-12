@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Get a Recovery Quote — Big Ben's Towing &amp; Recovery</title>
-<meta name="description" content="Instant recovery quote — £1.75 per mile from Great Lumley DH3 4HU. Pickup, drop-off and return-to-base mileage included. Card payment available." />
+<meta name="description" content="Instant recovery quote across the North East — honest, transparent pricing from Great Lumley DH3 4HU. Pickup, drop-off and return-to-base distance included. Card payment available." />
 <meta name="theme-color" content="#0d0d0d" />
 <link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/img/icon-16.png" />
@@ -53,7 +53,7 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Big Ben's Towing &amp; Recovery" />
 <meta property="og:title" content="Get a Recovery Quote — Big Ben's Towing &amp; Recovery" />
-<meta property="og:description" content="Instant recovery quote — £1.75 per mile from Great Lumley DH3 4HU. Pickup, drop-off and return-to-base mileage included. Card payment available." />
+<meta property="og:description" content="Instant recovery quote across the North East — honest, transparent pricing from Great Lumley DH3 4HU. Pickup, drop-off and return-to-base distance included. Card payment available." />
 <meta property="og:url" content="https://bigbenstowingandrecovery.co.uk/quote.html" />
 <meta property="og:image" content="https://bigbenstowingandrecovery.co.uk/img/og-image.jpg" />
 <meta property="og:image:width" content="1200" />
@@ -62,14 +62,14 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
 <meta property="og:locale" content="en_GB" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Get a Recovery Quote — Big Ben's Towing &amp; Recovery" />
-<meta name="twitter:description" content="Instant recovery quote — £1.75 per mile from Great Lumley DH3 4HU. Pickup, drop-off and return-to-base mileage included. Card payment available." />
+<meta name="twitter:description" content="Instant recovery quote across the North East — honest, transparent pricing from Great Lumley DH3 4HU. Pickup, drop-off and return-to-base distance included. Card payment available." />
 <meta name="twitter:image" content="https://bigbenstowingandrecovery.co.uk/img/og-image.jpg" />
 </head>
 <body>
 
 <header class="site-header">
   <div class="container nav">
-    <a class="brand" href="index.html">
+    <a class="brand" href="./">
       <img src="img/logo.jpg" alt="Big Ben's Towing &amp; Recovery logo" width="256" height="171" />
       <div>
         <div class="name">BIG BEN'<span>S</span></div>
@@ -78,12 +78,12 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
     </a>
     <button class="nav-toggle" aria-label="Open menu" type="button">&#9776;</button>
     <nav class="nav-links" id="navlinks">
-      <a href="index.html">Home</a>
-      <a href="services.html">Services</a>
-      <a href="quote.html">Get a Quote</a>
-      <a href="scrap.html">Scrap My Car</a>
-      <a href="areas.html">Areas</a>
-      <a href="contact.html">Contact</a>
+      <a href="./">Home</a>
+      <a href="services">Services</a>
+      <a href="quote">Get a Quote</a>
+      <a href="scrap">Scrap My Car</a>
+      <a href="areas">Areas</a>
+      <a href="contact">Contact</a>
     </nav>
     <a class="btn btn-call danger" href="tel:+447754984147">07754&nbsp;984&nbsp;147</a>
   </div>
@@ -94,7 +94,7 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
 <aside class="safety-strip" role="complementary" aria-label="Motorway breakdown safety guide">
   <div class="container">
     <span class="ss-icon" aria-hidden="true">🚨</span>
-    <span class="ss-text">Broken down on the motorway? <a href="motorway-breakdown.html">Read our 60-second safety guide first<span class="ss-arrow" aria-hidden="true">&rarr;</span></a></span>
+    <span class="ss-text">Broken down on the motorway? <a href="motorway-breakdown">Read our 60-second safety guide first<span class="ss-arrow" aria-hidden="true">&rarr;</span></a></span>
   </div>
 </aside>
 <!-- bb:safety-strip:end -->
@@ -103,24 +103,40 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
   <div class="container" style="max-width: 760px;">
     <div class="section-head" style="text-align:left;">
       <h2>Instant <span class="accent">Recovery Quote</span></h2>
-      <p style="margin:0;">Pick your pickup and drop-off locations and we'll work out the all-in price. Mileage runs base&nbsp;→&nbsp;pickup&nbsp;→&nbsp;drop-off&nbsp;→&nbsp;base, charged at <strong>£1.75 per mile</strong>. No call-out fees, no VAT surprises.</p>
+      <p style="margin:0;">Enter your pickup and drop-off postcodes and we'll work out the all-in price. Stuck on the roadside? Use the <strong>Use my location</strong> button and we'll pin your exact spot. <strong>No call-out fees, no VAT surprises</strong> — just one honest figure, confirmed by phone before we set off.</p>
     </div>
 
     <form class="form-card" id="quoteForm">
       <div class="form-row">
         <div class="form-group">
-          <label for="pickup">Pickup Location</label>
-          <select id="pickup" required>
-            <option value="">Choose a town…</option>
-          </select>
-          <div class="form-help">Where the vehicle is now.</div>
+          <label for="pickup">Pickup Postcode</label>
+          <div class="input-with-action">
+            <input id="pickup" type="text" inputmode="text" autocomplete="postal-code"
+                   placeholder="e.g. DH3 4HU" maxlength="9" required />
+            <button type="button" class="btn-locate" id="useMyLocation" aria-label="Use my current location">
+              <span class="locate-icon" aria-hidden="true">📍</span>
+              <span class="locate-text">Use my location</span>
+            </button>
+          </div>
+          <div class="form-help" id="pickupHelp">Where the vehicle is now. Tap the pin if you're at the roadside.</div>
         </div>
         <div class="form-group">
-          <label for="dropoff">Drop-off Location</label>
-          <select id="dropoff" required>
-            <option value="">Choose a town…</option>
-          </select>
-          <div class="form-help">Where you want it taken.</div>
+          <label for="dropoff">Drop-off Postcode</label>
+          <input id="dropoff" type="text" inputmode="text" autocomplete="postal-code"
+                 placeholder="e.g. SR7 7SN" maxlength="9" required />
+          <div class="form-help">Where you want it taken (home, garage, scrapyard…).</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="photo">Photo of the vehicle <span style="color:var(--grey-2);font-weight:400;">(optional)</span></label>
+          <input id="photo" type="file" accept="image/*" capture="environment" />
+          <div class="form-help">Quick snap helps us bring the right kit. Your phone will offer the camera.</div>
+          <div id="photoPreview" style="margin-top:10px; display:none;">
+            <img alt="Preview" style="max-width:200px; max-height:160px; border-radius:4px; border:1px solid #333;" />
+            <button type="button" id="photoClear" style="display:inline-block; margin-left:10px; vertical-align:top; background:#3a1a1a; color:#ff8088; border:1px solid #5a2828; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:.85rem;">Remove</button>
+          </div>
         </div>
       </div>
 
@@ -151,7 +167,7 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
     <div id="quoteResult" style="display:none;"></div>
 
     <p style="margin-top:32px; color:var(--grey); font-size:.95rem;">
-      Pickup or drop-off not on the list? Just <a href="tel:+447754984147">call&nbsp;us&nbsp;on&nbsp;07754&nbsp;984&nbsp;147</a> — we cover the whole UK for transport jobs and we'll quote on the spot.
+      Postcode not coming up, or somewhere overseas? Just <a href="tel:+447754984147">call&nbsp;us&nbsp;on&nbsp;07754&nbsp;984&nbsp;147</a> — we cover the whole UK for transport jobs and we'll quote on the spot.
     </p>
   </div>
 </section>
@@ -166,8 +182,8 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
     </div>
     <div class="grid">
       <article class="card">
-        <h3>£1.75 per mile</h3>
-        <p>That's the full job rate, all-in. We charge for the round trip — base&nbsp;→&nbsp;pickup&nbsp;→&nbsp;drop-off&nbsp;→&nbsp;base — because that's what we actually drive.</p>
+        <h3>One honest figure</h3>
+        <p>Punch your postcodes in and the calculator tells you the all-in price — round trip, no extras layered on after. The figure is confirmed by phone before we set off.</p>
       </article>
       <article class="card">
         <h3>No hidden extras</h3>
@@ -188,11 +204,11 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
     </div>
     <div>
       <h3>Quick Links</h3>
-      <p><a href="index.html">Home</a><br/><a href="services.html">Services</a><br/><a href="scrap.html">Scrap My Car</a><br/><a href="areas.html">Areas</a></p>
+      <p><a href="./">Home</a><br/><a href="services">Services</a><br/><a href="scrap">Scrap My Car</a><br/><a href="areas">Areas</a></p>
     </div>
     <div>
       <h3>Help</h3>
-      <p><a href="motorway-breakdown.html">Motorway breakdown</a><br/><a href="faq.html">FAQ</a><br/><a href="terms.html">Terms &amp; Conditions</a><br/><a href="privacy.html">Privacy Policy</a><br/><a href="contact.html">Contact</a></p>
+      <p><a href="motorway-breakdown">Motorway breakdown</a><br/><a href="faq">FAQ</a><br/><a href="terms">Terms &amp; Conditions</a><br/><a href="privacy">Privacy Policy</a><br/><a href="contact">Contact</a></p>
     </div>
     <div>
       <h3>Get In Touch</h3>
@@ -212,6 +228,6 @@ h1{font-family:var(--font-display);font-weight:400;letter-spacing:.005em;text-tr
 </div>
 
 <script src="js/main.js"></script>
-<script src="js/quote.js"></script>
+<script src="js/quote.js?v=5"></script>
 </body>
 </html>

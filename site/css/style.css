@@ -653,6 +653,100 @@ section.alt { background: var(--jet); }
 }
 .form-help { font-size: .85rem; color: #9c9c9c; margin-top: 4px; }  /* was --grey-2 (#6e6e6e) — too dim */
 
+/* ---------- Coverage map A-Z list (under the Leaflet map) ---------- */
+.coverage-az {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px 18px;
+}
+.coverage-az a {
+  color: var(--white);
+  text-decoration: none;
+  padding: 4px 0;
+  font-size: .95rem;
+  border-bottom: 1px solid transparent;
+}
+.coverage-az a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+@media (max-width: 480px) {
+  .coverage-az { grid-template-columns: repeat(2, 1fr); }
+}
+/* Leaflet popup colours readable on our dark theme is automatic — popups
+   render on a white background. Keep z-index well below the float-stack. */
+.leaflet-container { z-index: 1; }
+.leaflet-pane, .leaflet-control { z-index: 2; }
+
+/* ---------- Deposit summary on the quote result --------- */
+.deposit-box {
+  margin-top: 18px; padding: 14px 16px;
+  background: #fff7e0; border-left: 4px solid var(--yellow);
+  border-radius: 4px;
+}
+.deposit-line {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 1rem; color: #1a1a1a; padding: 4px 0;
+}
+.deposit-line strong { font-size: 1.1rem; }
+.deposit-line.muted { color: #555; font-weight: 500; }
+.deposit-note {
+  margin: 8px 0 0; font-size: .88rem; color: #444; line-height: 1.4;
+}
+
+/* CTA row under a quote result — wraps nicely on phones. */
+.quote-cta {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-top: 18px;
+}
+.quote-cta .btn { flex: 1 1 auto; }
+.quote-cta .btn-pay-deposit {
+  flex: 2 1 220px;                      /* primary CTA gets more space */
+  background: var(--accent); color: #fff; border: 0;
+  font-family: var(--font-display); letter-spacing: .04em;
+  text-transform: uppercase; cursor: pointer;
+  padding: 14px 18px; border-radius: 4px; font-size: 1rem;
+  transition: background-color .15s, transform .05s;
+}
+.quote-cta .btn-pay-deposit:hover  { background: #ff7a3d; }
+.quote-cta .btn-pay-deposit:active { transform: scale(.98); }
+.quote-cta .btn-pay-deposit:disabled { opacity: .55; cursor: progress; }
+
+/* ---------- Postcode input with side-button ("Use my location") ---------- */
+.input-with-action {
+  display: flex; gap: 8px; align-items: stretch;
+}
+.input-with-action input {
+  flex: 1 1 auto; min-width: 0;          /* let it shrink so the button fits */
+  text-transform: uppercase;             /* postcodes are uppercase */
+  letter-spacing: .05em;
+}
+.input-with-action input::placeholder {
+  text-transform: none;                  /* keep the example readable */
+  letter-spacing: normal;
+}
+.btn-locate {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 14px;
+  background: var(--yellow);
+  color: #1a1a1a;
+  border: 0; border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: .92rem; letter-spacing: .04em; text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color .15s, transform .05s;
+}
+.btn-locate:hover  { background: #ffd429; }
+.btn-locate:active { transform: scale(.97); }
+.btn-locate:disabled { opacity: .55; cursor: progress; }
+.btn-locate .locate-icon { font-size: 1.05rem; line-height: 1; }
+
+/* On phones, drop the verbose label so the icon-only button stays compact next
+   to the postcode field. The aria-label keeps screen readers happy. */
+@media (max-width: 480px) {
+  .btn-locate .locate-text { display: none; }
+  .btn-locate { padding: 0 12px; }
+}
+
 /* Honeypot — visually hidden but still in the tab order is risky for some
    bots, so we hard-hide it with width:0 + opacity:0 + tabindex=-1 in HTML. */
 .hp-trap {
@@ -884,36 +978,38 @@ section.alt { background: var(--jet); }
   .float-wa {
     flex: 1 1 0;
     width: auto; height: auto;
+    min-width: 0;                          /* let flex children shrink below content size */
     min-height: 68px;
-    padding: 10px 14px;
+    padding: 10px 12px;
     border-radius: 0;
-    gap: 12px;
+    gap: 10px;
     justify-content: center;
+    overflow: hidden;                      /* anything that doesn't fit clips cleanly */
     box-shadow: none;
     animation: none;                       /* static = control, not notification */
   }
-  .float-call { flex: 1.4 1 0; }           /* slight bias toward Call */
+  .float-call { flex: 1.4 1 0; }           /* slight bias toward Call (longer number) */
 
   .float-call .fc-icon,
   .float-wa   .fc-icon {
     background: #fff;
-    width: 42px; height: 42px;
+    width: 40px; height: 40px;
     border-radius: 50%;
     flex-shrink: 0;
   }
   .float-call .fc-icon { color: var(--red); }
   .float-wa   .fc-icon { color: var(--wa-green); }
   .float-call .fc-icon svg,
-  .float-wa   .fc-icon svg { width: 24px; height: 24px; }
+  .float-wa   .fc-icon svg { width: 22px; height: 22px; }
 
   .float-call .fc-text,
   .float-wa   .fc-text {
     display: flex; flex-direction: column;
     line-height: 1.05; text-align: left;
-    min-width: 0;
+    min-width: 0;                          /* allow text to shrink/ellipsis */
   }
   .fc-label {
-    font-size: .72rem; font-weight: 600;
+    font-size: .7rem; font-weight: 600;
     letter-spacing: .04em; text-transform: uppercase;
     color: #ffffff;                /* was rgba(255,255,255,.85) — failed AA on red/green */
     opacity: .92;
@@ -921,24 +1017,35 @@ section.alt { background: var(--jet); }
   }
   .fc-num {
     font-family: var(--font-display);
-    font-size: 1.45rem; letter-spacing: .03em;
+    font-size: 1.35rem; letter-spacing: .02em;
     color: #fff;
-    white-space: nowrap;
+    white-space: nowrap; overflow: hidden; text-overflow: clip;
   }
-  .float-wa .fc-num { font-size: 1.55rem; }   /* "WhatsApp" reads better a touch larger */
+  /* "WhatsApp" was 1.55rem → overflowed on iPhone-class widths.
+     Smaller, and on narrow phones we drop the secondary label too. */
+  .float-wa .fc-num { font-size: 1.2rem; }
 
   /* Stop the footer (and final CTAs) hiding behind the bar */
   body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 }
 
-/* Tightest phones — drop the secondary labels so the digits stay clear */
-@media (max-width: 380px) {
-  .float-call .fc-label,
+/* Mid-narrow phones (~iPhone SE / Mini): WhatsApp side gets icon + word only */
+@media (max-width: 480px) {
   .float-wa .fc-label { display: none; }
-  .float-call .fc-num { font-size: 1.3rem; }
-  .float-wa .fc-num   { font-size: 1.35rem; }
+  .float-wa .fc-num { font-size: 1.1rem; }
+}
+
+/* Tightest phones — drop call's secondary label so the digits stay clear */
+@media (max-width: 380px) {
+  .float-call .fc-label { display: none; }
+  .float-call .fc-num { font-size: 1.2rem; }
+  .float-wa .fc-num   { font-size: 1.05rem; }
   .float-call,
-  .float-wa { padding: 10px 10px; gap: 10px; }
+  .float-wa { padding: 10px 8px; gap: 8px; }
+  .float-call .fc-icon,
+  .float-wa .fc-icon { width: 36px; height: 36px; }
+  .float-call .fc-icon svg,
+  .float-wa .fc-icon svg { width: 20px; height: 20px; }
 }
 
 /* =========================================================

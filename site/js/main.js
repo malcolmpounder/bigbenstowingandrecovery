@@ -162,6 +162,18 @@
           "My location: " + mapsUrl + "\n" +
           "(GPS accurate to ~" + acc + "m)\n" +
           "Please come and get me.";
+        // Fire the email ping in the background — Ben gets it even if the
+        // customer never finishes the WhatsApp send. Failures are silent;
+        // we don't block the UI on the email going through.
+        try {
+          fetch('/api/share-location', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ lat: lat, lng: lng, accuracy: acc, note: 'Tapped Share Location on the website' }),
+            keepalive: true            // survives the WhatsApp page-navigation
+          }).catch(function () { /* silent */ });
+        } catch (_) { /* older browsers — keep going */ }
+
         setShareState(btn, 'success', 'Got it — opening WhatsApp…');
         // Brief pause so the user sees the success state
         setTimeout(function () {
@@ -234,19 +246,20 @@
     }
   }
 
-  // ---- Service worker (offline / poor-signal mode) ------------------
-  // Caches the homepage, motorway-breakdown safety guide and core assets
-  // so the call number is reachable even when signal drops on the hard
-  // shoulder. Skipped on file:// and other non-secure contexts.
-  if ('serviceWorker' in navigator) {
-    var isSecure = location.protocol === 'https:'
-      || location.hostname === 'localhost'
-      || location.hostname === '127.0.0.1';
-    if (isSecure) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js').catch(function () { /* silently ignore */ });
-      });
-    }
+  // ---- Service worker — temporarily DISABLED -------------------------
+  // The previous SW (bb-v1..bb-v5) cached HTML responses that came back
+  // through Cloudflare Pages' *.html → clean-URL 308 redirect. Cached
+  // "redirected" responses corrupt navigation when re-served, which left
+  // users stuck on the home page (every other link errored).
+  // sw.js is now a kill-switch that clears its caches and unregisters —
+  // we deliberately do NOT register it again here, otherwise we end up in
+  // a register → unregister → reload → register loop. We'll bring back a
+  // lean SW (assets-only, no HTML caching) once we have content-hashed
+  // filenames so cache invalidation is safe.
+  if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (reg) { reg.unregister(); });
+    }).catch(function () { /* ignore — old browser */ });
   }
 
   // ---- Homepage availability badge --------------------------------

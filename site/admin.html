@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin — Big Ben's Towing &amp; Recovery</title>
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#0d0d0d" />
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png" />
+<link rel="stylesheet" href="/css/fonts.css" />
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  body { padding: 32px 16px; }
+  .admin-wrap { max-width: 1100px; margin: 0 auto; }
+  .login-card, .summary-card, .booking-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .summary .stat { background: rgba(255,255,255,.04); padding: 14px 16px; border-radius: 6px; border-left: 3px solid var(--accent); }
+  .summary .stat .label { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: #999; }
+  .summary .stat .value { font-family: var(--font-display); font-size: 1.7rem; color: var(--accent); margin-top: 2px; }
+  .booking-card { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; }
+  .booking-card .ref { font-family: var(--font-display); font-size: 1.05rem; color: var(--accent); }
+  .booking-card .badges { font-size: .78rem; }
+  .badge { display:inline-block; padding: 2px 8px; border-radius: 99px; font-size: .75rem; margin-right: 4px; }
+  .badge.paid     { background: #1f3d1f; color: #a4d965; }
+  .badge.pending  { background: #3d3217; color: #ffd54a; }
+  .badge.balance  { background: #1a3d3d; color: #80d8d8; }
+  .booking-card .meta { font-size: .9rem; color: #ccc; }
+  .booking-card .meta strong { color: #fff; }
+  .booking-card .amount { font-family: var(--font-display); font-size: 1.4rem; color: #fff; text-align: right; }
+  .booking-card .customer { font-size: .85rem; color: #999; margin-top: 4px; }
+  .booking-card .customer a { color: #ccc; text-decoration: underline; }
+  .empty { text-align: center; color: #999; padding: 40px; }
+  @media (max-width: 720px) {
+    .summary { grid-template-columns: 1fr; }
+    .booking-card { grid-template-columns: 1fr; }
+    .booking-card .amount { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-wrap">
+  <header style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div>
+      <a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+        <img src="/img/logo.jpg" alt="" width="48" height="32" style="border-radius:4px;" />
+        <div>
+          <div style="font-family:var(--font-display); font-size:1.2rem; color:#fff;">BIG BEN'<span style="color:var(--accent);">S</span></div>
+          <div style="font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:#999;">Admin Dashboard</div>
+        </div>
+      </a>
+    </div>
+    <div>
+      <button id="logoutBtn" type="button" class="btn ghost" style="display:none;">Sign out</button>
+    </div>
+  </header>
+
+  <div id="loginCard" class="login-card" style="max-width:420px; margin:60px auto;">
+    <h2 style="margin-top:0;">Sign in</h2>
+    <p style="color:#999; margin-bottom:18px;">Enter the admin password to view bookings.</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="pw">Password</label>
+        <input id="pw" type="password" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="btn primary" style="margin-top:8px; width:100%;">Sign in</button>
+      <div id="loginErr" style="margin-top:10px; color:#ff8088; font-size:.9rem;"></div>
+    </form>
+  </div>
+
+  <div id="dashboardCard" style="display:none;">
+    <div class="summary" id="summary"></div>
+    <h3 style="margin:32px 0 12px;">Recent bookings</h3>
+    <div id="bookings"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var loginCard = document.getElementById('loginCard');
+  var dashCard  = document.getElementById('dashboardCard');
+  var loginForm = document.getElementById('loginForm');
+  var pwInput   = document.getElementById('pw');
+  var errEl     = document.getElementById('loginErr');
+  var bookEl    = document.getElementById('bookings');
+  var sumEl     = document.getElementById('summary');
+  var logoutBtn = document.getElementById('logoutBtn');
+  var STORE_KEY = 'bbAdminPw';
+
+  function fmtGBP(n) {
+    return new Intl.NumberFormat('en-GB', { style:'currency', currency:'GBP' }).format(n || 0);
+  }
+  function fmtDate(unix) {
+    return new Date(unix * 1000).toLocaleString('en-GB', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function renderSummary(s) {
+    sumEl.innerHTML =
+      '<div class="stat"><div class="label">Today</div><div class="value">' + fmtGBP(s.today_total) + '</div></div>' +
+      '<div class="stat"><div class="label">Last 7 days</div><div class="value">' + fmtGBP(s.week_total) + '</div></div>' +
+      '<div class="stat"><div class="label">Paid bookings</div><div class="value">' + s.paid_count + '</div></div>';
+  }
+
+  function renderBookings(list) {
+    if (!list.length) {
+      bookEl.innerHTML = '<div class="empty">No bookings yet — once Stripe is wired up and a customer pays, they\'ll show up here.</div>';
+      return;
+    }
+    bookEl.innerHTML = list.map(function (b) {
+      var paidBadge    = b.paid ? '<span class="badge paid">✓ Paid</span>' : '<span class="badge pending">Pending</span>';
+      var kindBadge    = b.kind === 'balance' ? '<span class="badge balance">Balance payment</span>' : '';
+      var route        = b.pickup && b.dropoff ? b.pickup + ' → ' + b.dropoff : (b.pickup || b.dropoff || '');
+      var customer     = '';
+      if (b.customer_name)  customer += '<strong>' + b.customer_name + '</strong>';
+      if (b.customer_phone) customer += (customer ? ' · ' : '') + '<a href="tel:' + b.customer_phone + '">' + b.customer_phone + '</a>';
+      if (b.customer_email) customer += (customer ? ' · ' : '') + '<a href="mailto:' + b.customer_email + '">' + b.customer_email + '</a>';
+
+      return '<div class="booking-card">' +
+        '<div>' +
+          '<div class="ref">' + b.ref + '</div>' +
+          '<div class="badges">' + paidBadge + ' ' + kindBadge + '</div>' +
+          '<div style="font-size:.78rem; color:#666; margin-top:4px;">' + fmtDate(b.created) + '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="meta">' + (route || '<span style="color:#666;">No route logged</span>') + '</div>' +
+          (b.total_quote ? '<div class="meta" style="font-size:.82rem; color:#999;">Quote: £' + b.total_quote + (b.balance_due ? ' · Balance: £' + b.balance_due : '') + '</div>' : '') +
+          (customer ? '<div class="customer">' + customer + '</div>' : '') +
+        '</div>' +
+        '<div class="amount">' + (b.amount != null ? fmtGBP(b.amount) : '—') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function showError(msg) {
+    errEl.textContent = msg;
+  }
+
+  function load(password) {
+    return fetch('/api/admin-bookings', {
+      headers: { authorization: 'Bearer ' + password }
+    }).then(function (r) {
+      return r.json().then(function (j) { return { ok: r.ok, status: r.status, body: j }; });
+    });
+  }
+
+  function showDashboard(data) {
+    loginCard.style.display = 'none';
+    dashCard.style.display = 'block';
+    logoutBtn.style.display = '';
+    renderSummary(data.summary);
+    renderBookings(data.sessions);
+  }
+
+  // Auto-restore session if password is in sessionStorage (this tab only —
+  // closes when tab closes, no persistent login state on a public computer)
+  var saved = sessionStorage.getItem(STORE_KEY);
+  if (saved) {
+    load(saved).then(function (resp) {
+      if (resp.ok) showDashboard(resp.body);
+      else sessionStorage.removeItem(STORE_KEY);
+    });
+  }
+
+  loginForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    showError('');
+    var pw = pwInput.value;
+    if (!pw) return;
+    load(pw).then(function (resp) {
+      if (resp.ok) {
+        sessionStorage.setItem(STORE_KEY, pw);
+        showDashboard(resp.body);
+      } else if (resp.status === 401) {
+        showError('Wrong password.');
+      } else if (resp.status === 503 && resp.body.error === 'admin_not_configured') {
+        showError("Admin isn't switched on yet — set ADMIN_PASSWORD in Cloudflare Pages.");
+      } else if (resp.status === 503 && resp.body.error === 'stripe_not_configured') {
+        showError("Stripe isn't connected yet — once it is, bookings will show here.");
+      } else {
+        showError(resp.body.error || 'Could not load bookings.');
+      }
+    }).catch(function () {
+      showError('Network error — try again in a moment.');
+    });
+  });
+
+  logoutBtn.addEventListener('click', function () {
+    sessionStorage.removeItem(STORE_KEY);
+    location.reload();
+  });
+})();
+</script>
+
+</body>
+</html>

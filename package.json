@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "@noble/hashes": "^2.2.0",
+    "qrcode": "^1.5.4",
+    "wrangler": "^3.114.17"
+  }
+}

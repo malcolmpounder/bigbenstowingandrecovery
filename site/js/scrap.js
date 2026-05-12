@@ -1,22 +1,34 @@
 /* =========================================================
    Big Ben's Towing — scrap-car offer calculator
    Logic:
-     EMR offer (indicative)  = vehicle_tonnes × £/tonne × condition_multiplier + cat_bonus
-     Recovery cost            = (base→pickup + pickup→EMR Sunderland + EMR→base) × £1.75
-     Customer net             = max(EMR offer − recovery cost, MIN_PAYOUT)
+     Base offer    = tonnes × £/tonne
+     + cat bonus  (catalytic converter present)
+     + alloys bonus (factory alloy wheels)
+     × condition multiplier
+     − £20 if no V5C logbook
+     − collection cost
+     Customer net  = max(MIN_PAYOUT, the lot above)
 
-   £/tonne is editable here in EMR_RATE_PER_TONNE — Big Ben updates it
-   when EMR changes their rate (no code changes elsewhere needed).
-   EMR Sunderland location: Pallion industrial estate, ~SR4.
+   Collection cost rules:
+     - Free within 15 driving miles of our base (DH3 4HU)
+     - Beyond that, a per-mile contribution covers the longer trip.
+       The rate is private (held in COLLECTION_RATE) and only the
+       resulting deduction is shown to the customer, not the rate.
+     - Round-trip portion beyond the free radius is what gets charged
+       (so if pickup is 25 mi from base: chargeable = (25 − 15) × 2 = 20 mi)
+
+   £/tonne is editable here in OFFER_PER_TONNE (this one IS public).
    ========================================================= */
 (function () {
   // === Tunables — Big Ben edits these as the market moves =====
-  var EMR_RATE_PER_TONNE   = 270;    // £/tonne — UK avg in 2026
-  var RECOVERY_PER_MILE    = 1.75;   // £/mile — same as recovery quote
-  var MIN_PAYOUT           = 30;     // £ minimum we'll pay even on tiny jobs
-  // EMR Sunderland — Pallion (approximate centroid for distance calc)
-  var EMR_SUNDERLAND       = { name: 'EMR Sunderland', lat: 54.9080, lng: -1.4080, miles_from_base: 13 };
-  var ROAD_FACTOR          = 1.3;
+  var OFFER_PER_TONNE  = 60;     // £/tonne — flat rate paid to the customer
+  var FREE_RADIUS_MI   = 15;     // free collection within this radius of base
+  // Internal — never displayed to the customer. Per-mile collection
+  // contribution beyond the free radius. Rate sheet is private.
+  var COLLECTION_RATE  = 1.75;
+  var NO_V5C_DEDUCT    = 20;     // £ deducted if no logbook
+  var ALLOYS_BONUS     = 25;     // £ added if factory alloys
+  var MIN_PAYOUT       = 30;     // £ minimum we'll pay even on tiny jobs
   // ============================================================
 
   var pickupSel = document.getElementById('pickup');
@@ -27,11 +39,80 @@
   var regStatus = document.getElementById('regStatus');
   var vclassSel = document.getElementById('vclass');
   var vmodelInp = document.getElementById('vmodel');
+  // The "Vehicle confirmed" pill + manual-fallback row introduced when we
+  // started auto-classifying via DVLA. When the lookup matches a known
+  // weight class we collapse the manual row entirely.
+  var vehicleConfirmed       = document.getElementById('vehicleConfirmed');
+  var vehicleConfirmedLabel  = document.getElementById('vehicleConfirmedLabel');
+  var vehicleConfirmedTonnes = document.getElementById('vehicleConfirmedTonnes');
+  var vehicleManualRow       = document.getElementById('vehicleManualRow');
+  var vehicleEditBtn         = document.getElementById('vehicleEditBtn');
   var DATA      = null;
   var WEIGHTS   = null;
 
-  // Load the weight lookup table
-  fetch('data/weights.json').then(function (r) { return r.json(); }).then(function (w) { WEIGHTS = w; });
+  function showConfirmedVehicle(label, classOption, certainty, hasModel) {
+    if (!vehicleConfirmed || !vehicleManualRow) return;
+    vehicleConfirmedLabel.textContent = label;
+    var opt = classOption ? classOption.textContent.split(' (')[0] : '';
+    var tonnes = classOption ? classOption.dataset.tonnes : '';
+    var classLabel = tonnes
+      ? tonnes + ' tonnes · ' + opt.toLowerCase()
+      : opt;
+
+    var header = document.getElementById('vehicleConfirmedHeader');
+    // Best-guess framing: we picked a class based on the make alone (no
+    // exact model match in our weights table). Visually different to a
+    // confirmed match so the customer knows to double-check.
+    if (certainty === 'guess') {
+      // Don't claim "model not in DVLA reply" if we DO have a model — DVSA
+      // sometimes returns a short form (e.g. "C" for C-Class) that we
+      // haven't mapped specifically. Use a neutral framing in that case.
+      var suffix = hasModel ? '' : ' (model not on file)';
+      vehicleConfirmedLabel.textContent = label + suffix;
+      vehicleConfirmedTonnes.textContent = 'Estimated as ' + opt.toLowerCase() + ' (' + tonnes + ' t) — tap "Edit" if that\'s wrong';
+      // Switch the green panel to a cautionary yellow.
+      vehicleConfirmed.style.background = '#3d3217';
+      vehicleConfirmed.style.borderLeftColor = '#ffc20e';
+      if (header) {
+        header.textContent = 'Best guess';
+        header.style.color = '#ffd54a';
+      }
+    } else {
+      vehicleConfirmedTonnes.textContent = classLabel;
+      vehicleConfirmed.style.background = '#1f3d1f';
+      vehicleConfirmed.style.borderLeftColor = '#6dba2c';
+      if (header) {
+        header.textContent = 'Vehicle confirmed';
+        header.style.color = '#a4d965';
+      }
+    }
+
+    vehicleConfirmed.hidden = false;
+    vehicleConfirmed.style.display = '';                  // un-hide
+    // .form-row sets display:grid which beats the [hidden] UA stylesheet, so
+    // we set display:none explicitly to actually collapse the manual row.
+    vehicleManualRow.style.display = 'none';
+    vehicleManualRow.hidden = true;
+    // The manual select is required=true; if we hide it we must drop required
+    // or the form won't submit. The class is already programmatically selected,
+    // so the value's there — just lift the constraint.
+    vclassSel.required = false;
+  }
+  function showManualVehicle() {
+    if (!vehicleConfirmed || !vehicleManualRow) return;
+    vehicleConfirmed.hidden = true;
+    vehicleConfirmed.style.display = 'none';
+    vehicleManualRow.style.display = '';                  // back to grid
+    vehicleManualRow.hidden = false;
+    vclassSel.required = true;
+  }
+  if (vehicleEditBtn) {
+    vehicleEditBtn.addEventListener('click', showManualVehicle);
+  }
+
+  // Load the weight lookup table. v= query string busts old CDN-cached
+  // copies whenever we add new vehicles or new make-default entries.
+  fetch('data/weights.json?v=4').then(function (r) { return r.json(); }).then(function (w) { WEIGHTS = w; });
 
   fetch('data/areas.json')
     .then(function (r) { return r.json(); })
@@ -50,30 +131,68 @@
     if (!DATA) return null;
     return DATA.areas.find(function (a) { return a.slug === slug; });
   }
-  function haversineMiles(a, b) {
-    var R = 3958.8, toRad = function (x) { return x * Math.PI / 180; };
-    var dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
-    var lat1 = toRad(a.lat), lat2 = toRad(b.lat);
-    var h = Math.sin(dLat/2)*Math.sin(dLat/2) +
-            Math.sin(dLng/2)*Math.sin(dLng/2)*Math.cos(lat1)*Math.cos(lat2);
-    return 2 * R * Math.asin(Math.sqrt(h));
-  }
   function fmtGBP(n) {
     return new Intl.NumberFormat('en-GB', { style:'currency', currency:'GBP', maximumFractionDigits: 0 }).format(n);
+  }
+
+  // Round-trip miles charged for a pickup that is `miles` from base.
+  //   miles ≤ 15 → 0 (free)
+  //   miles > 15 → (miles − 15) × 2  (chargeable on the way out AND back)
+  function chargeableMiles(milesFromBase) {
+    return Math.max(0, milesFromBase - FREE_RADIUS_MI) * 2;
   }
 
   // ============ Reg lookup ============
   function normaliseReg(s) {
     return (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
+  // Tight matcher: the character immediately AFTER the match in the key
+  // must be a non-letter (digit, space, hyphen, or end-of-string). This
+  //   - allows "BMW 3" to match "BMW 320D" (digit follows 3)
+  //   - allows "MERCEDES-BENZ C" to match "MERCEDES-BENZ C 220 CDI" (space)
+  //   - REFUSES "MERCEDES-BENZ C" to match "MERCEDES-BENZ CLA" (letter)
+  //   - REFUSES "MERCEDES-BENZ S" to match "MERCEDES-BENZ SLK" (letter)
+  // Start boundary is handled by the three top-level checks: at position 0,
+  // preceded by a space, or exact equality.
+  function endBoundaryOk(key, endPos) {
+    if (endPos >= key.length) return true;
+    var c = key.charAt(endPos);
+    return c < 'A' || c > 'Z';   // key is already uppercased
+  }
+  function matchesEntry(key, m) {
+    if (!m) return false;
+    // m at position 0
+    if (key.indexOf(m) === 0 && endBoundaryOk(key, m.length)) return true;
+    // m preceded by a space (mid-string)
+    var idx = key.indexOf(' ' + m);
+    if (idx >= 0 && endBoundaryOk(key, idx + 1 + m.length)) return true;
+    // exact equality
+    if (key === m) return true;
+    return false;
+  }
+
+  // Returns { class, certainty: 'exact' | 'guess' } or null when we can't even
+  // make a sensible guess. 'exact' = matched by full make+model. 'guess' =
+  // matched only by make (e.g. DVLA gave us "MERCEDES-BENZ" with no model;
+  // we default Mercedes scrap jobs to medium-class). UI surfaces 'guess'
+  // differently so the customer knows to double-check.
   function classifyVehicle(make, model) {
     if (!WEIGHTS) return null;
     var key = ((make || '') + ' ' + (model || '')).toUpperCase().trim();
-    // Most-specific-first: longest match wins
     var matches = WEIGHTS.vehicles
-      .filter(function (v) { return key.indexOf(v.match) === 0 || key.indexOf(' ' + v.match) >= 0 || key === v.match; })
+      .filter(function (v) { return matchesEntry(key, v.match); })
       .sort(function (a, b) { return b.match.length - a.match.length; });
-    return matches[0] || null;
+    if (matches[0]) return { class: matches[0].class, certainty: 'exact' };
+
+    // Make-only fallback: DVLA's free VES API often returns make without model.
+    // Better to give a sensible default than to bail and show the manual list.
+    if (WEIGHTS._makes_default && make) {
+      var makeUpper = make.toUpperCase().trim();
+      if (WEIGHTS._makes_default[makeUpper]) {
+        return { class: WEIGHTS._makes_default[makeUpper], certainty: 'guess' };
+      }
+    }
+    return null;
   }
   function setStatus(msg, kind) {
     // kind: 'ok' | 'warn' | 'err' | 'info'
@@ -103,22 +222,43 @@
       })
       .then(function (v) {
         // v = { make, model, year, fuel, colour, source }
-        if (vmodelInp) vmodelInp.value = [v.year, v.make, v.model].filter(Boolean).join(' ');
+        var label = [v.year, v.make, v.model].filter(Boolean).join(' ');
+        if (vmodelInp) vmodelInp.value = label;
         var match = classifyVehicle(v.make, v.model);
         if (match) {
-          // Find the option whose value matches the class
+          var matchedOption = null;
           for (var i = 0; i < vclassSel.options.length; i++) {
             if (vclassSel.options[i].value === match.class) {
               vclassSel.selectedIndex = i;
+              matchedOption = vclassSel.options[i];
               break;
             }
           }
-          setStatus('Found: ' + (v.year ? v.year + ' ' : '') + v.make + ' ' + (v.model || '') + ' — class set to ' + vclassSel.options[vclassSel.selectedIndex].textContent.split(' (')[0].toLowerCase() + '. Adjust if needed.', 'ok');
+          // Collapse the manual class+model row. With certainty='exact'
+          // we render a green "Confirmed" pill; with 'guess' we render a
+          // yellow "Estimated — tap to override" pill instead.
+          var hasModel = !!v.model;
+          showConfirmedVehicle(label, matchedOption, match.certainty, hasModel);
+          var classWord = matchedOption.textContent.split(' (')[0].toLowerCase();
+          if (match.certainty === 'exact') {
+            setStatus('Found ' + label + ' — using ' + classWord + ' class. Tap "Edit" to override.', 'ok');
+          } else if (hasModel) {
+            // We have a model but it doesn't match our weights table (e.g.
+            // DVSA returned "C" for Mercedes C-Class). Keep the framing
+            // honest — we found the model, we just classified by make.
+            setStatus('Found ' + label + ' — best-guess: ' + classWord + ' class. Tap "Edit" if your model is heavier/lighter.', 'warn');
+          } else {
+            setStatus('Found ' + (v.make || '') + ' (model not on file) — best-guess: ' + classWord + ' class. Tap "Edit" if your model is different.', 'warn');
+          }
         } else {
-          setStatus('Found ' + v.make + ' ' + (v.model || '') + ' — please pick a vehicle class below.', 'warn');
+          // We got a vehicle from DVLA but our weights table doesn't know
+          // even the make (very rare — kit cars, ultra-niche imports).
+          showManualVehicle();
+          setStatus('Found ' + label + ' — please pick a vehicle class below.', 'warn');
         }
       })
       .catch(function (e) {
+        showManualVehicle();
         setStatus("Couldn't find that reg — please pick a vehicle class below. (We can confirm by phone.)", 'err');
       })
       .finally(function () { regBtn.disabled = false; });
@@ -150,42 +290,68 @@
       return;
     }
 
-    var vclassEl  = document.getElementById('vclass');
-    var condEl    = document.getElementById('condition');
-    var catEl     = document.getElementById('cat');
+    var vclassEl    = document.getElementById('vclass');
+    var condEl      = document.getElementById('condition');
+    var catEl       = document.getElementById('cat');
+    var alloysEl    = document.getElementById('alloys');
+    var paperworkEl = document.getElementById('paperwork');
     if (!vclassEl.value) return;
 
-    var tonnes    = parseFloat(vclassEl.options[vclassEl.selectedIndex].dataset.tonnes);
-    var condMult  = parseFloat(condEl.options[condEl.selectedIndex].dataset.mult);
-    var catBonus  = parseFloat(catEl.options[catEl.selectedIndex].dataset.bonus) || 0;
+    var tonnes      = parseFloat(vclassEl.options[vclassEl.selectedIndex].dataset.tonnes);
+    var condMult    = parseFloat(condEl.options[condEl.selectedIndex].dataset.mult);
+    var catBonus    = parseFloat(catEl.options[catEl.selectedIndex].dataset.bonus) || 0;
+    var alloysBonus = (alloysEl && alloysEl.value === 'yes') ? ALLOYS_BONUS : 0;
+    var noV5C       = paperworkEl && paperworkEl.value === 'no';
 
-    var emrOffer  = (tonnes * EMR_RATE_PER_TONNE * condMult) + catBonus;
+    // ----- The offer -----
+    var basePerTonne = tonnes * OFFER_PER_TONNE;       // raw scrap value
+    var preCondition = basePerTonne + catBonus + alloysBonus;
+    var afterCond    = preCondition * condMult;
+    var afterPaperwork = afterCond - (noV5C ? NO_V5C_DEDUCT : 0);
 
     var pickup = find(pickupSlug);
-    // Round trip: base → pickup → EMR → base
-    var miBaseToPickup = pickup.miles;
-    var miPickupToEmr  = Math.round(haversineMiles(pickup, EMR_SUNDERLAND) * ROAD_FACTOR);
-    var miEmrToBase    = EMR_SUNDERLAND.miles_from_base;
-    var totalMiles     = miBaseToPickup + miPickupToEmr + miEmrToBase;
-    var recoveryCost   = totalMiles * RECOVERY_PER_MILE;
+    var milesFromBase = pickup.miles;
+    var chargeMi      = chargeableMiles(milesFromBase);
+    var collectionCost = chargeMi * COLLECTION_RATE;
 
-    var net = emrOffer - recoveryCost;
+    var net = Math.round(afterPaperwork - collectionCost);
     if (net < MIN_PAYOUT) net = MIN_PAYOUT;
-    net = Math.round(net);
 
-    var positive = (emrOffer - recoveryCost) > MIN_PAYOUT;
+    // Build the breakdown rows. We only show a row if it changed the offer
+    // (e.g. no point showing "alloys: £0" when they said no).
+    var rows = '';
+    rows += '<div><span>Vehicle ' + tonnes.toFixed(2) + ' tonnes × £' + OFFER_PER_TONNE + '/t</span><span>' + fmtGBP(basePerTonne) + '</span></div>';
+    if (catBonus > 0) {
+      rows += '<div><span>Catalytic converter bonus</span><span>+' + fmtGBP(catBonus) + '</span></div>';
+    }
+    if (alloysBonus > 0) {
+      rows += '<div><span>Alloy wheels bonus</span><span>+' + fmtGBP(alloysBonus) + '</span></div>';
+    }
+    if (condMult !== 1.00) {
+      var condLabel = condEl.options[condEl.selectedIndex].textContent;
+      var pct = Math.round((condMult - 1) * 100);
+      rows += '<div><span>' + condLabel + ' (' + (pct >= 0 ? '+' : '') + pct + '%)</span><span>' + fmtGBP(afterCond - preCondition) + '</span></div>';
+    }
+    if (noV5C) {
+      rows += '<div><span>No V5C logbook</span><span>−' + fmtGBP(NO_V5C_DEDUCT) + '</span></div>';
+    }
+    if (collectionCost > 0) {
+      // Show distance from base (helpful) but NOT the chargeable miles —
+      // that would let the customer back-calculate the per-mile rate, which
+      // we deliberately keep off the public site.
+      rows += '<div><span>Collection (' + Math.round(milesFromBase) + ' mi from base — outside the free zone)</span><span>−' + fmtGBP(collectionCost) + '</span></div>';
+    } else {
+      rows += '<div><span>Collection within ' + FREE_RADIUS_MI + ' mi of base</span><span style="color:#3a8a3a;">FREE</span></div>';
+    }
+    rows += '<div style="border-top:1px dashed rgba(0,0,0,.3); padding-top:6px; font-weight:700;"><span>Cash to you</span><span>' + fmtGBP(net) + '</span></div>';
 
     var html =
-      '<div class="quote-result ' + (positive ? 'scrap-positive' : 'scrap-negative') + '">' +
+      '<div class="quote-result scrap-positive">' +
         '<h3>Your indicative offer</h3>' +
         '<div class="price">' + fmtGBP(net) + '</div>' +
-        '<p style="margin:6px 0 0;"><strong>' + pickup.name + '</strong> collection · ' + tonnes.toFixed(2) + ' tonnes ·  EMR rate ' + fmtGBP(EMR_RATE_PER_TONNE) + '/t</p>' +
-        '<div class="breakdown">' +
-          '<div><span>EMR Sunderland indicative offer</span><span>' + fmtGBP(emrOffer) + '</span></div>' +
-          '<div><span>Less recovery (' + totalMiles + ' mi @ £1.75)</span><span>−' + fmtGBP(recoveryCost) + '</span></div>' +
-          '<div style="border-top:1px dashed rgba(0,0,0,.3); padding-top:6px; font-weight:700;"><span>Cash to you</span><span>' + fmtGBP(net) + '</span></div>' +
-        '</div>' +
-        '<p style="margin:0 0 14px; font-size:.92rem;"><em>EMR rates change weekly — final offer confirmed before we collect. ' + (!positive ? 'Note: this vehicle is close to break-even on transport. We pay a guaranteed ' + fmtGBP(MIN_PAYOUT) + ' minimum.' : '') + '</em></p>' +
+        '<p style="margin:6px 0 0;"><strong>' + pickup.name + '</strong> collection · ' + tonnes.toFixed(2) + ' tonnes · £' + OFFER_PER_TONNE + '/tonne flat</p>' +
+        '<div class="breakdown">' + rows + '</div>' +
+        '<p style="margin:0 0 14px; font-size:.92rem;"><em>Indicative only — final figure confirmed once we\'ve seen the vehicle. We always pay at least ' + fmtGBP(MIN_PAYOUT) + ' even when the numbers say less.</em></p>' +
         '<a class="btn danger btn-call" href="tel:+447754984147">Lock in this offer — 07754 984 147</a>' +
       '</div>';
 
