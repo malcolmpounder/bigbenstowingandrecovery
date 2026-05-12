@@ -17,11 +17,15 @@
      - Round-trip portion beyond the free radius is what gets charged
        (so if pickup is 25 mi from base: chargeable = (25 − 15) × 2 = 20 mi)
 
-   £/tonne is editable here in OFFER_PER_TONNE (this one IS public).
+   £/tonne is editable here in OFFER_PER_TONNE — INTERNAL ONLY (never shown).
    ========================================================= */
 (function () {
   // === Tunables — Big Ben edits these as the market moves =====
-  var OFFER_PER_TONNE  = 60;     // £/tonne — flat rate paid to the customer
+  // OFFER_PER_TONNE is kept OFF the customer-facing UI (no £/tonne shown
+  // in copy, breakdown rows, or subheadings). It's an internal pricing
+  // input so we don't telegraph our buying margin to scrap-metal-savvy
+  // sellers comparing us against direct yards.
+  var OFFER_PER_TONNE  = 60;     // £/tonne — internal rate, not displayed
   var FREE_RADIUS_MI   = 15;     // free collection within this radius of base
   // Internal — never displayed to the customer. Per-mile collection
   // contribution beyond the free radius. Rate sheet is private.
@@ -49,12 +53,23 @@
   var vehicleEditBtn         = document.getElementById('vehicleEditBtn');
   var DATA      = null;
   var WEIGHTS   = null;
+  // When the DVLA/DVSA lookup matches a known make+model, weights.json can
+  // carry an exact `tonnes` override (the published manufacturer kerb weight
+  // for that model, taken as the median across UK-sold generations). When
+  // set, this overrides the dropdown's data-tonnes — giving per-model
+  // accuracy without needing a paid spec API. Reset on manual edit so a
+  // manual class pick uses the class-band default.
+  var perModelTonnes = null;
 
   function showConfirmedVehicle(label, classOption, certainty, hasModel) {
     if (!vehicleConfirmed || !vehicleManualRow) return;
     vehicleConfirmedLabel.textContent = label;
     var opt = classOption ? classOption.textContent.split(' (')[0] : '';
-    var tonnes = classOption ? classOption.dataset.tonnes : '';
+    // Prefer per-model exact tonnes (manufacturer kerb weight from weights.json)
+    // when we have one; fall back to the class-band default otherwise.
+    var tonnes = perModelTonnes != null
+      ? perModelTonnes.toFixed(2)
+      : (classOption ? classOption.dataset.tonnes : '');
     var classLabel = tonnes
       ? tonnes + ' tonnes · ' + opt.toLowerCase()
       : opt;
@@ -105,6 +120,8 @@
     vehicleManualRow.style.display = '';                  // back to grid
     vehicleManualRow.hidden = false;
     vclassSel.required = true;
+    // Drop any per-model override — manual class pick uses class-band default
+    perModelTonnes = null;
   }
   if (vehicleEditBtn) {
     vehicleEditBtn.addEventListener('click', showManualVehicle);
@@ -112,7 +129,7 @@
 
   // Load the weight lookup table. v= query string busts old CDN-cached
   // copies whenever we add new vehicles or new make-default entries.
-  fetch('data/weights.json?v=4').then(function (r) { return r.json(); }).then(function (w) { WEIGHTS = w; });
+  fetch('data/weights.json?v=6').then(function (r) { return r.json(); }).then(function (w) { WEIGHTS = w; });
 
   fetch('data/areas.json')
     .then(function (r) { return r.json(); })
@@ -171,18 +188,23 @@
     return false;
   }
 
-  // Returns { class, certainty: 'exact' | 'guess' } or null when we can't even
-  // make a sensible guess. 'exact' = matched by full make+model. 'guess' =
-  // matched only by make (e.g. DVLA gave us "MERCEDES-BENZ" with no model;
-  // we default Mercedes scrap jobs to medium-class). UI surfaces 'guess'
-  // differently so the customer knows to double-check.
+  // Returns { class, certainty: 'exact' | 'guess', tonnes? } or null when
+  // we can't even make a sensible guess. 'exact' = matched by full make+model.
+  // 'guess' = matched only by make. The optional `tonnes` is the per-model
+  // exact kerb weight (manufacturer published median across UK-sold
+  // generations) — when present it overrides the class-band default and
+  // gives the customer a properly accurate offer.
   function classifyVehicle(make, model) {
     if (!WEIGHTS) return null;
     var key = ((make || '') + ' ' + (model || '')).toUpperCase().trim();
     var matches = WEIGHTS.vehicles
       .filter(function (v) { return matchesEntry(key, v.match); })
       .sort(function (a, b) { return b.match.length - a.match.length; });
-    if (matches[0]) return { class: matches[0].class, certainty: 'exact' };
+    if (matches[0]) {
+      var out = { class: matches[0].class, certainty: 'exact' };
+      if (typeof matches[0].tonnes === 'number') out.tonnes = matches[0].tonnes;
+      return out;
+    }
 
     // Make-only fallback: DVLA's free VES API often returns make without model.
     // Better to give a sensible default than to bail and show the manual list.
@@ -226,6 +248,10 @@
         if (vmodelInp) vmodelInp.value = label;
         var match = classifyVehicle(v.make, v.model);
         if (match) {
+          // Stash any per-model override so the offer calc + confirmation
+          // pill both reach for the exact kerb weight instead of the class
+          // band default. Cleared in showManualVehicle().
+          perModelTonnes = (typeof match.tonnes === 'number') ? match.tonnes : null;
           var matchedOption = null;
           for (var i = 0; i < vclassSel.options.length; i++) {
             if (vclassSel.options[i].value === match.class) {
@@ -297,7 +323,13 @@
     var paperworkEl = document.getElementById('paperwork');
     if (!vclassEl.value) return;
 
-    var tonnes      = parseFloat(vclassEl.options[vclassEl.selectedIndex].dataset.tonnes);
+    // Use the per-model exact kerb weight when we have one (e.g. DVLA returned
+    // a make+model that's mapped to a published manufacturer figure); otherwise
+    // fall back to the dropdown's class-band default. Either way, the rest of
+    // the calc is in tonnes.
+    var tonnes      = perModelTonnes != null
+      ? perModelTonnes
+      : parseFloat(vclassEl.options[vclassEl.selectedIndex].dataset.tonnes);
     var condMult    = parseFloat(condEl.options[condEl.selectedIndex].dataset.mult);
     var catBonus    = parseFloat(catEl.options[catEl.selectedIndex].dataset.bonus) || 0;
     var alloysBonus = (alloysEl && alloysEl.value === 'yes') ? ALLOYS_BONUS : 0;
@@ -320,7 +352,7 @@
     // Build the breakdown rows. We only show a row if it changed the offer
     // (e.g. no point showing "alloys: £0" when they said no).
     var rows = '';
-    rows += '<div><span>Vehicle ' + tonnes.toFixed(2) + ' tonnes × £' + OFFER_PER_TONNE + '/t</span><span>' + fmtGBP(basePerTonne) + '</span></div>';
+    rows += '<div><span>Vehicle ' + tonnes.toFixed(2) + ' tonnes (kerb weight)</span><span>' + fmtGBP(basePerTonne) + '</span></div>';
     if (catBonus > 0) {
       rows += '<div><span>Catalytic converter bonus</span><span>+' + fmtGBP(catBonus) + '</span></div>';
     }
@@ -349,7 +381,7 @@
       '<div class="quote-result scrap-positive">' +
         '<h3>Your indicative offer</h3>' +
         '<div class="price">' + fmtGBP(net) + '</div>' +
-        '<p style="margin:6px 0 0;"><strong>' + pickup.name + '</strong> collection · ' + tonnes.toFixed(2) + ' tonnes · £' + OFFER_PER_TONNE + '/tonne flat</p>' +
+        '<p style="margin:6px 0 0;"><strong>' + pickup.name + '</strong> collection · ' + tonnes.toFixed(2) + ' tonnes (kerb weight)</p>' +
         '<div class="breakdown">' + rows + '</div>' +
         '<p style="margin:0 0 14px; font-size:.92rem;"><em>Indicative only — final figure confirmed once we\'ve seen the vehicle. We always pay at least ' + fmtGBP(MIN_PAYOUT) + ' even when the numbers say less.</em></p>' +
         '<a class="btn danger btn-call" href="tel:+447754984147">Lock in this offer — 07754 984 147</a>' +
